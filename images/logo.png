@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7BC300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#49D43F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="40" fill="#0F1115"/>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="url(#leafGrad)" stroke-width="3" opacity="0.3"/>
+  <path d="M100 140 C100 140 60 120 60 85 C60 70 72 58 85 60 C95 62 100 75 100 75 C100 75 105 62 115 60 C128 58 140 70 140 85 C140 120 100 140 100 140Z" fill="url(#leafGrad)"/>
+  <line x1="100" y1="140" x2="100" y2="160" stroke="#7BC300" stroke-width="3" stroke-linecap="round"/>
+  <text x="100" y="185" text-anchor="middle" fill="#7BC300" font-family="Arial, sans-serif" font-weight="bold" font-size="12">KIBOE</text>
+</svg>

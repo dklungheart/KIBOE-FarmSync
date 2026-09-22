@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIBOE FarmSync - Dashboard</title>
+  <meta name="description" content="Farm management dashboard — track crops, livestock, finances, and operations.">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C2W5HDQJ5H"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C2W5HDQJ5H');</script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/dashboard.css" rel="stylesheet">
+</head>
+<body class="dashboard-body">
+  <!-- Loader -->
+  <div class="loader-overlay" id="mainLoader">
+    <div class="loader-box">
+      <div class="loader-spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Confirm modal -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <h3 id="confirmTitle">Confirm</h3>
+      <p id="confirmMsg">Are you sure?</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" id="confirmCancel">Cancel</button>
+        <button class="btn-confirm" id="confirmOk">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vaccination table modal -->
+  <div class="vaccine-table-modal" id="vaccineTableModal">
+    <div class="vaccine-table-box">
+      <div class="vtable-head">
+        <h4><i class="fas fa-syringe"></i> Vaccinations - <span id="vtLivestockName">Livestock</span></h4>
+        <button class="btn-icon" onclick="closeVaccineTable()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead><tr><th>Vaccine</th><th>Date Administered</th><th>Next Due</th></tr></thead>
+          <tbody id="vaccineTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for profile picture -->
+  <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+
+  <div class="dash-wrapper">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="dash-sidebar" id="dashSidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-logo">
+          <img src="assets/images/logo.png" alt="KIBOE FarmSync" style="height:32px;">
+          <span class="brand-text">KIBOE <span class="text-green">FarmSync</span></span>
+        </a>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <a href="index.html" class="nav-link"><img src="assets/icons/home.jpg" alt="Home"><span>Home</span></a>
+        <a href="#" data-page="dashboard" class="nav-link active"><img src="assets/icons/dashboard.jpg" alt="Dashboard"><span>Dashboard</span></a>
+        <a href="#" data-page="crops" class="nav-link"><img src="assets/icons/crop.jpeg" alt="Crops"><span>Crops</span></a>
+        <a href="#" data-page="livestock" class="nav-link"><img src="assets/icons/livestock.jpeg" alt="Livestock"><span>Livestock</span></a>
+        <a href="#" data-page="transactions" class="nav-link"><img src="assets/icons/Finance.jpg" alt="Finance"><span>Transactions</span></a>
+        <a href="#" data-page="records" class="nav-link"><img src="assets/icons/farm%20records.jpg" alt="Records"><span>Farm Records</span></a>
+        <a href="#" data-page="reports" class="nav-link"><img src="assets/icons/Analysis%20and%20reports.jpg" alt="Reports"><span>Reports</span></a>
+        <a href="#" data-page="supplies" class="nav-link"><img src="assets/icons/Supplies.jpg" alt="Supplies"><span>Supplies</span></a>
+        <a href="#" data-page="tasks" class="nav-link"><img src="assets/icons/Tasks%26records.jpg" alt="Tasks"><span>Tasks</span></a>
+        <a href="#" data-page="calendar" class="nav-link"><img src="assets/icons/Calender.jpg" alt="Calendar"><span>Calendar</span></a>
+        <a href="#" data-page="marketplace" class="nav-link"><img src="assets/icons/Market%20place.jpg" alt="Marketplace"><span>Marketplace</span></a>
+        <a href="#" data-page="agrovet" class="nav-link"><img src="assets/icons/agrovet.jpg" alt="Agrovet"><span>Agrovet</span></a>
+        <a href="#" data-page="events" class="nav-link"><img src="assets/icons/Events.jpg" alt="Events"><span>Events</span></a>
+        <a href="#" data-page="contractors" class="nav-link"><img src="assets/icons/contractors.jpg" alt="Contractors"><span>Contractors</span></a>
+        <a href="#" data-page="admin" class="nav-link" id="adminNavLink" style="display:none;"><img src="assets/icons/Admin.jpg" alt="Admin"><span>Admin</span></a>
+        <a href="#" data-page="settings" class="nav-link"><img src="assets/icons/Settings.jpg" alt="Settings"><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" onclick="logout()" class="nav-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="dash-main">
+      <!-- Top bar -->
+      <header class="dash-topbar">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        <div class="topbar-search">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search anything..." class="form-control" id="topSearch" onkeyup="globalSearch(this.value)">
+        </div>
+        <div class="topbar-date" id="topbarDate"></div>
+        <div class="topbar-right">
+          <button class="btn-icon" id="notifBell" title="Notifications"><img src="assets/icons/Notification.jpg" alt="Notifications"><span class="badge" id="notifCount">0</span></button>
+          <div class="topbar-user" id="avatarBtn" title="Change profile picture">
+            <img src="https://ui-avatars.com/api/?name=User&background=49D43F&color=fff&bold=true" alt="" class="avatar" id="userAvatar">
+            <span id="userName">James Mwangi</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content area -->
+      <div class="dash-content">
+
+
+        <!-- ======================== DASHBOARD PAGE ======================== -->
+        <div class="page-section active" id="page-dashboard">
+          <div class="page-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p id="dashWelcome">Welcome back! Here's your farm overview.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('cropModal')"><i class="fas fa-seedling"></i> <span>Add Crop</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openModal('livestockModal')"><i class="fas fa-horse-head"></i> <span>Add Livestock</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openModal('transactionModal')"><i class="fas fa-wallet"></i> <span>Add Transaction</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openModal('recordModal')"><i class="fas fa-book"></i> <span>Add Record</span></button>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="dash-stat-card" data-aos="fade-up" data-aos-delay="50">
+              <div class="stat-icon bg-green"><img src="assets/icons/crop.jpeg" alt="Crops"></div>
+              <div class="stat-info"><h3 id="statCrops">--</h3><p>Active Crops</p></div>
+            </div>
+            <div class="dash-stat-card" data-aos="fade-up" data-aos-delay="100">
+              <div class="stat-icon bg-blue"><img src="assets/icons/livestock.jpeg" alt="Livestock"></div>
+              <div class="stat-info"><h3 id="statLivestock">--</h3><p>Livestock</p></div>
+            </div>
+            <div class="dash-stat-card" data-aos="fade-up" data-aos-delay="150">
+              <div class="stat-icon bg-yellow"><img src="assets/icons/Finance.jpg" alt="Finance"></div>
+              <div class="stat-info"><h3 id="statProfit">KSh --</h3><p>Net Profit</p></div>
+            </div>
+            <div class="dash-stat-card" data-aos="fade-up" data-aos-delay="200">
+              <div class="stat-icon bg-red"><i class="fas fa-tasks"></i></div>
+              <div class="stat-info"><h3 id="statRecords">--</h3><p>Farm Records</p></div>
+            </div>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-xl-8" data-aos="fade-up">
+              <div class="dash-card">
+                <div class="card-head">
+                  <h4><i class="fas fa-chart-area"></i> Profit Overview</h4>
+                  <span class="badge bg-success" id="profitBadge">This Year</span>
+                </div>
+                <div class="card-body-chart"><canvas id="dashProfitChart"></canvas></div>
+              </div>
+            </div>
+            <div class="col-xl-4" data-aos="fade-up" data-aos-delay="80">
+              <div class="dash-card">
+                <div class="card-head">
+                  <h4><i class="fas fa-chart-pie"></i> Crop Distribution</h4>
+                </div>
+                <div class="card-body-chart"><canvas id="dashCropChart"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-xl-4" data-aos="fade-up">
+              <div class="dash-card">
+                <div class="card-head"><h4><i class="fas fa-cloud-sun"></i> Weather Forecast</h4></div>
+                <div class="weather-forecast" id="weatherForecast"></div>
+              </div>
+            </div>
+            <div class="col-xl-4" data-aos="fade-up" data-aos-delay="60">
+              <div class="dash-card">
+                <div class="card-head"><h4><i class="fas fa-clock"></i> Recent Activity</h4></div>
+                <div class="activity-feed" id="activityFeed"></div>
+              </div>
+            </div>
+            <div class="col-xl-4" data-aos="fade-up" data-aos-delay="120">
+              <div class="dash-card">
+                <div class="card-head"><h4><i class="fas fa-calendar-check"></i> Upcoming Tasks</h4></div>
+                <div class="task-list" id="taskList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ======================== CROPS PAGE ======================== -->
+        <div class="page-section" id="page-crops">
+          <div class="page-header">
+            <div>
+              <h1>My Crops</h1>
+              <p>Manage your crop inventory and planting schedules</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('cropModal')"><i class="fas fa-plus"></i> <span>Add Crop</span></button>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-table"></i> All Crops</h4>
+              <span class="badge bg-success" id="cropCount">0 records</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search crops..." id="cropsSearchInput" oninput="localFilter('crops')">
+              </div>
+              <div class="filter-group">
+                <select id="cropStatusFilter" onchange="localFilter('crops')">
+                  <option value="">All Status</option>
+                  <option value="growing">Growing</option>
+                  <option value="harvested">Harvested</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+            </div>
+            <div class="dash-table-wrap">
+              <table class="dash-table" id="cropsTable">
+                <thead>
+                  <tr>
+                    <th class="sort-header" data-sort="name" onclick="sortTable('crops','name')">Name <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="variety" onclick="sortTable('crops','variety')">Variety <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="area" onclick="sortTable('crops','area')">Area <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="planting_date" onclick="sortTable('crops','planting_date')">Planted <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="expected_harvest_date" onclick="sortTable('crops','expected_harvest_date')">Harvest <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="status" onclick="sortTable('crops','status')">Status <i class="fas fa-sort"></i></th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="cropsTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="cropsPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== LIVESTOCK PAGE ======================== -->
+        <div class="page-section" id="page-livestock">
+          <div class="page-header">
+            <div>
+              <h1>My Livestock</h1>
+              <p>Track your animals, breeds, vaccinations and artificial insemination records</p>
+            </div>
+            <div class="page-actions" id="livestockListActions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('livestockModal')"><i class="fas fa-plus"></i> <span>Add Livestock</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openVaccineModal()"><i class="fas fa-syringe"></i> <span>Add Vaccination</span></button>
+            </div>
+            <div class="page-actions" id="livestockAiActions" style="display:none;">
+              <button class="btn-glow btn-sm-glow" onclick="openBreedingModal()"><i class="fas fa-heart-pulse"></i> <span>Add AI Record</span></button>
+            </div>
+          </div>
+
+          <!-- Sub-tabs -->
+          <div class="sub-tabs" id="livestockTabs">
+            <button class="sub-tab active" data-ltab="list" onclick="switchLivestockTab('list')"><i class="fas fa-horse-head"></i> Livestock</button>
+            <button class="sub-tab" data-ltab="ai" onclick="switchLivestockTab('ai')"><i class="fas fa-heart-pulse"></i> Artificial Insemination <span class="sub-tab-count" id="aiCountBadge">0</span></button>
+          </div>
+
+          <div id="livestockListView">
+            <div class="dash-card">
+              <div class="card-head">
+                <h4><i class="fas fa-table"></i> All Livestock</h4>
+                <span class="badge bg-success" id="livestockCount">0 records</span>
+              </div>
+              <div class="table-toolbar">
+                <div class="search-group">
+                  <i class="fas fa-search"></i>
+                  <input type="text" placeholder="Search livestock..." id="livestockSearchInput" oninput="localFilter('livestock')">
+                </div>
+                <div class="filter-group">
+                  <select id="livestockStatusFilter" onchange="localFilter('livestock')">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="sold">Sold</option>
+                    <option value="deceased">Deceased</option>
+                  </select>
+                </div>
+              </div>
+              <div class="dash-table-wrap">
+                <table class="dash-table" id="livestockTable">
+                  <thead>
+                    <tr>
+                      <th class="sort-header" data-sort="name" onclick="sortTable('livestock','name')">Name <i class="fas fa-sort"></i></th>
+                      <th class="sort-header" data-sort="species" onclick="sortTable('livestock','species')">Species <i class="fas fa-sort"></i></th>
+                      <th class="sort-header" data-sort="breed" onclick="sortTable('livestock','breed')">Breed <i class="fas fa-sort"></i></th>
+                      <th class="sort-header" data-sort="gender" onclick="sortTable('livestock','gender')">Gender <i class="fas fa-sort"></i></th>
+                      <th class="sort-header" data-sort="birth_date" onclick="sortTable('livestock','birth_date')">Birth Date <i class="fas fa-sort"></i></th>
+                      <th class="sort-header" data-sort="status" onclick="sortTable('livestock','status')">Status <i class="fas fa-sort"></i></th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="livestockTableBody"></tbody>
+                </table>
+              </div>
+              <div class="pagination-bar" id="livestockPagination"></div>
+            </div>
+          </div>
+
+          <div id="livestockAiView" style="display:none;">
+            <div class="dash-card">
+              <div class="card-head">
+                <h4><i class="fas fa-heart-pulse"></i> Artificial Insemination Records</h4>
+                <span class="badge bg-success" id="aiCount">0 records</span>
+              </div>
+              <div class="ai-mini-stats" id="aiMiniStats"></div>
+              <div class="table-toolbar">
+                <div class="search-group">
+                  <i class="fas fa-search"></i>
+                  <input type="text" placeholder="Search animal, breed or semen..." id="aiSearchInput" oninput="filterAIRecords()">
+                </div>
+                <div class="filter-group">
+                  <select id="aiMethodFilter" onchange="filterAIRecords()">
+                    <option value="">All Methods</option>
+                    <option value="AI">Artificial Insemination</option>
+                    <option value="Natural">Natural</option>
+                    <option value="ET">Embryo Transfer</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <select id="aiStatusFilter" onchange="filterAIRecords()">
+                    <option value="">All Outcomes</option>
+                    <option value="pending">Pending</option>
+                    <option value="yes">Confirmed</option>
+                    <option value="no">Not Successful</option>
+                  </select>
+                </div>
+              </div>
+              <div class="dash-table-wrap">
+                <table class="dash-table" id="aiTable">
+                  <thead>
+                    <tr>
+                      <th>Animal</th>
+                      <th>Species / Breed</th>
+                      <th>Service Date</th>
+                      <th>Breed / Semen Served</th>
+                      <th>Method</th>
+                      <th>Expected Calving</th>
+                      <th>Outcome</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="aiTableBody"></tbody>
+                </table>
+              </div>
+              <div class="pagination-bar" id="aiPagination"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ======================== TRANSACTIONS PAGE ======================== -->
+        <div class="page-section" id="page-transactions">
+          <div class="page-header">
+            <div>
+              <h1>Transactions</h1>
+              <p>Track your farm income, expenses, and financial summaries</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('transactionModal')"><i class="fas fa-plus"></i> <span>Add Transaction</span></button>
+            </div>
+          </div>
+          <div class="stat-row" style="grid-template-columns: repeat(3,1fr);">
+            <div class="dash-stat-card">
+              <div class="stat-icon bg-green"><i class="fas fa-arrow-up"></i></div>
+              <div class="stat-info"><h3 id="txnIncome">KSh 0</h3><p>Total Income</p></div>
+            </div>
+            <div class="dash-stat-card">
+              <div class="stat-icon bg-red"><i class="fas fa-arrow-down"></i></div>
+              <div class="stat-info"><h3 id="txnExpense">KSh 0</h3><p>Total Expenses</p></div>
+            </div>
+            <div class="dash-stat-card">
+              <div class="stat-icon bg-yellow"><i class="fas fa-balance-scale"></i></div>
+              <div class="stat-info"><h3 id="txnBalance">KSh 0</h3><p>Net Balance</p></div>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-table"></i> All Transactions</h4>
+              <span class="badge bg-success" id="txnCount">0 records</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search transactions..." id="txnSearchInput" oninput="localFilter('txn')">
+              </div>
+              <div class="filter-group">
+                <select id="txnTypeFilter" onchange="localFilter('txn')">
+                  <option value="">All Types</option>
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+              </div>
+            </div>
+            <div class="dash-table-wrap">
+              <table class="dash-table" id="txnTable">
+                <thead>
+                  <tr>
+                    <th class="sort-header" data-sort="type" onclick="sortTable('txn','type')">Type <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="category" onclick="sortTable('txn','category')">Category <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="amount" onclick="sortTable('txn','amount')">Amount <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="transaction_date" onclick="sortTable('txn','transaction_date')">Date <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="description" onclick="sortTable('txn','description')">Description <i class="fas fa-sort"></i></th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="txnTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="txnPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== FARM RECORDS PAGE ======================== -->
+        <div class="page-section" id="page-records">
+          <div class="page-header">
+            <div>
+              <h1>Farm Records</h1>
+              <p>Keep detailed logs of field work, harvests, and maintenance</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('recordModal')"><i class="fas fa-plus"></i> <span>Add Record</span></button>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-table"></i> All Records</h4>
+              <span class="badge bg-success" id="recCount">0 records</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search records..." id="recSearchInput" oninput="localFilter('rec')">
+              </div>
+              <div class="filter-group">
+                <select id="recTypeFilter" onchange="localFilter('rec')">
+                  <option value="">All Types</option>
+                  <option value="general">General</option>
+                  <option value="field_work">Field Work</option>
+                  <option value="harvest">Harvest</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </div>
+            </div>
+            <div class="dash-table-wrap">
+              <table class="dash-table" id="recTable">
+                <thead>
+                  <tr>
+                    <th class="sort-header" data-sort="title" onclick="sortTable('rec','title')">Title <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="record_type" onclick="sortTable('rec','record_type')">Type <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" data-sort="record_date" onclick="sortTable('rec','record_date')">Date <i class="fas fa-sort"></i></th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="recTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="recPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== REPORTS PAGE ======================== -->
+        <div class="page-section" id="page-reports">
+          <div class="page-header">
+            <div>
+              <h1>Reports &amp; Analytics</h1>
+              <p>Visual insights into your farm performance</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="exportCSV()"><i class="fas fa-download"></i> <span>Export CSV</span></button>
+            </div>
+          </div>
+
+          <div class="stat-row" style="grid-template-columns: repeat(4,1fr);">
+            <div class="dash-stat-card"><div class="stat-icon bg-green"><img src="assets/icons/crop.jpeg" alt="Crops"></div><div class="stat-info"><h3 id="rptCrops">--</h3><p>Total Crops</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-blue"><img src="assets/icons/livestock.jpeg" alt="Livestock"></div><div class="stat-info"><h3 id="rptLivestock">--</h3><p>Total Livestock</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-yellow"><i class="fas fa-arrow-up"></i></div><div class="stat-info"><h3 id="rptIncome">--</h3><p>Total Income</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-red"><i class="fas fa-arrow-down"></i></div><div class="stat-info"><h3 id="rptExpense">--</h3><p>Total Expenses</p></div></div>
+          </div>
+
+          <div class="report-grid">
+            <div class="dash-card report-chart-box">
+              <div class="card-head"><h4><i class="fas fa-chart-bar"></i> Income vs Expenses</h4></div>
+              <div class="card-body-chart"><canvas id="rptBarChart"></canvas></div>
+            </div>
+            <div class="dash-card report-chart-box">
+              <div class="card-head"><h4><i class="fas fa-chart-pie"></i> Expense Breakdown</h4></div>
+              <div class="card-body-chart"><canvas id="rptPieChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ======================== SETTINGS PAGE ======================== -->
+        <div class="page-section" id="page-settings">
+          <div class="page-header">
+            <div>
+              <h1>Settings</h1>
+              <p>Manage your profile and account security</p>
+            </div>
+          </div>
+          <div class="settings-grid">
+            <div class="dash-card settings-section">
+              <h5><i class="fas fa-user"></i> Profile Information</h5>
+              <form id="profileForm">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="sName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="text" id="sPhone" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Farm Location</label>
+                  <input type="text" id="sLocation" class="form-control" placeholder="e.g. Kiambu County">
+                </div>
+                <div class="form-group">
+                  <label>Farm Size (acres)</label>
+                  <input type="number" step="0.1" id="sFarmSize" class="form-control" placeholder="e.g. 5">
+                </div>
+                <button type="submit" class="btn-glow w-100"><span>Save Profile</span></button>
+              </form>
+            </div>
+            <div class="dash-card settings-section">
+              <h5><i class="fas fa-image"></i> Profile Picture</h5>
+              <div style="text-align:center;padding:16px 0;">
+                <img src="https://ui-avatars.com/api/?name=User&background=49D43F&color=fff&bold=true" alt="" id="settingsAvatar" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-green);margin-bottom:16px;">
+                <p style="color:var(--gray);font-size:0.85rem;margin-bottom:12px;" id="avatarHint">JPEG, PNG or WEBP &middot; Max 5MB</p>
+                <button type="button" class="btn-glow" onclick="document.getElementById('avatarInput').click()" style="display:inline-flex;width:auto;padding:10px 24px;font-size:0.85rem;"><i class="fas fa-upload"></i> <span>Choose Photo</span></button>
+                <div id="avatarStatus" style="margin-top:10px;font-size:0.82rem;display:none;"></div>
+              </div>
+            </div>
+            <div class="dash-card settings-section">
+              <h5><i class="fas fa-lock"></i> Change Password</h5>
+              <form id="passwordForm">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input type="password" id="sCurrPw" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input type="password" id="sNewPw" class="form-control" required minlength="6">
+                </div>
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <input type="password" id="sConfirmPw" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-glow w-100"><span>Update Password</span></button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ======================== SUPPLIES PAGE ======================== -->
+        <div class="page-section" id="page-supplies">
+          <div class="page-header">
+            <div>
+              <h1>Supplies &amp; Inventory</h1>
+              <p>Track feed, fertilizer, seeds, medicines and other farm supplies</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('supplyModal')"><i class="fas fa-plus"></i> <span>Add Supply</span></button>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-table"></i> All Supplies</h4>
+              <span class="badge bg-success" id="supplyCount">0 records</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search supplies..." id="supplySearchInput" oninput="localFilter('supply')">
+              </div>
+            </div>
+            <div class="dash-table-wrap">
+              <table class="dash-table" id="supplyTable">
+                <thead>
+                  <tr>
+                    <th class="sort-header" onclick="sortTable('supply','name')">Name <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" onclick="sortTable('supply','category')">Category <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" onclick="sortTable('supply','quantity')">Qty <i class="fas fa-sort"></i></th>
+                    <th>Unit</th>
+                    <th class="sort-header" onclick="sortTable('supply','unit_cost')">Cost/Unit <i class="fas fa-sort"></i></th>
+                    <th>Supplier</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="supplyTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="supplyPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== TASKS PAGE ======================== -->
+        <div class="page-section" id="page-tasks">
+          <div class="page-header">
+            <div>
+              <h1>Tasks &amp; To-Do</h1>
+              <p>Manage farm chores, vet visits, spraying schedules and more</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openModal('taskModal')"><i class="fas fa-plus"></i> <span>Add Task</span></button>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-table"></i> All Tasks</h4>
+              <span class="badge bg-success" id="taskCount">0 records</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search tasks..." id="taskSearchInput" oninput="localFilter('task')">
+              </div>
+              <div class="filter-group">
+                <select id="taskStatusFilter" onchange="localFilter('task')">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            <div class="dash-table-wrap">
+              <table class="dash-table" id="taskTable">
+                <thead>
+                  <tr>
+                    <th class="sort-header" onclick="sortTable('task','title')">Title <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" onclick="sortTable('task','priority')">Priority <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" onclick="sortTable('task','status')">Status <i class="fas fa-sort"></i></th>
+                    <th class="sort-header" onclick="sortTable('task','due_date')">Due Date <i class="fas fa-sort"></i></th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="taskTableBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination-bar" id="taskPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== CALENDAR PAGE ======================== -->
+        <div class="page-section" id="page-calendar">
+          <div class="page-header">
+            <div>
+              <h1>Farm Calendar</h1>
+              <p>View planting, harvest, vaccinations and tasks at a glance</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="loadCalendar()"><i class="fas fa-sync"></i> <span>Refresh</span></button>
+            </div>
+          </div>
+          <div class="row g-4">
+            <div class="col-md-8">
+              <div class="dash-card">
+                <div class="card-head">
+                  <h4><i class="fas fa-calendar"></i> <span id="calMonthYear">Loading...</span></h4>
+                  <div>
+                    <button class="btn-icon" onclick="calNav(-1)" title="Previous month"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn-icon" onclick="calNav(1)" title="Next month"><i class="fas fa-chevron-right"></i></button>
+                  </div>
+                </div>
+                <div class="dash-table-wrap">
+                  <table class="dash-table" id="calTable">
+                    <thead><tr><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr></thead>
+                    <tbody id="calBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="dash-card">
+                <div class="card-head"><h4><i class="fas fa-list"></i> Events on <span id="calSelectedDate">selected date</span></h4></div>
+                <div id="calEvents" style="min-height:100px;color:var(--gray);font-size:0.9rem;">Click a date to see events</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ======================== MARKETPLACE PAGE ======================== -->
+        <div class="page-section" id="page-marketplace">
+          <div class="page-header">
+            <div>
+              <h1>Farm Marketplace</h1>
+              <p>Buy and sell farm produce, inputs, and equipment</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openProductModal()"><i class="fas fa-plus"></i> <span>Post Listing</span></button>
+            </div>
+          </div>
+
+          <div class="stat-row" style="grid-template-columns: repeat(4,1fr);">
+            <div class="dash-stat-card"><div class="stat-icon bg-green"><i class="fas fa-tag"></i></div><div class="stat-info"><h3 id="mpMyTotal">--</h3><p>My Listings</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-blue"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h3 id="mpMyApproved">--</h3><p>Approved</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-yellow"><i class="fas fa-hourglass-half"></i></div><div class="stat-info"><h3 id="mpMyPending">--</h3><p>Pending Review</p></div></div>
+            <div class="dash-stat-card"><div class="stat-icon bg-red"><i class="fas fa-check-double"></i></div><div class="stat-info"><h3 id="mpMySold">--</h3><p>Sold</p></div></div>
+          </div>
+
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-store"></i> Browse Listings</h4>
+              <span class="badge bg-success" id="mpCount">0 listings</span>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search products, county..." id="mpSearch" oninput="loadMarketplacePage()">
+              </div>
+              <div class="filter-group">
+                <select id="mpCategory" onchange="loadMarketplacePage()"><option value="">All Categories</option></select>
+                <select id="mpCounty" onchange="loadMarketplacePage()"><option value="">All Counties</option></select>
+                <select id="mpSort" onchange="loadMarketplacePage()">
+                  <option value="latest">Latest</option>
+                  <option value="cheapest">Price: Low to High</option>
+                  <option value="expensive">Price: High to Low</option>
+                  <option value="viewed">Most Viewed</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-grid" id="mpGrid"></div>
+            <div class="pagination-bar" id="mpPagination"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== AGROVET PAGE ======================== -->
+        <div class="page-section" id="page-agrovet">
+          <div class="page-header">
+            <div>
+              <h1>Agrovet Knowledge Centre</h1>
+              <p>Disease identification, prevention, and farming guides</p>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="card-head">
+              <h4><i class="fas fa-graduation-cap"></i> Knowledge Base</h4>
+              <span class="badge bg-success" id="agvCount">0 resources</span>
+            </div>
+            <div class="agv-tabs">
+              <button class="agv-tab active" data-agv="articles" onclick="setAgvTab('articles')"><i class="fas fa-newspaper"></i> Articles</button>
+              <button class="agv-tab" data-agv="crops" onclick="setAgvTab('crops')"><i class="fas fa-seedling"></i> Crop Diseases</button>
+              <button class="agv-tab" data-agv="livestock" onclick="setAgvTab('livestock')"><i class="fas fa-horse-head"></i> Livestock Diseases</button>
+              <button class="agv-tab" data-agv="guides" onclick="setAgvTab('guides')"><i class="fas fa-book"></i> Farming Guides</button>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search..." id="agvSearch" oninput="loadAgrovetPage()">
+              </div>
+            </div>
+            <div class="agv-content" id="agvContent"></div>
+          </div>
+        </div>
+
+
+        <!-- ======================== EVENTS PAGE ======================== -->
+        <div class="page-section" id="page-events">
+          <div class="page-header">
+            <div>
+              <h1>Agricultural Events</h1>
+              <p>Field days, exhibitions, training, and market days near you</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="openEventModal()" id="eventCreateBtn" style="display:none;"><i class="fas fa-plus"></i> <span>Create Event</span></button>
+            </div>
+          </div>
+          <div class="table-toolbar" style="margin-bottom:16px;">
+            <div class="search-group">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search events..." id="evSearch" oninput="loadEventsPage()">
+            </div>
+            <div class="filter-group">
+              <select id="evFilter" onchange="loadEventsPage()">
+                <option value="upcoming">Upcoming</option>
+                <option value="all">All Events</option>
+                <option value="past">Past</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-grid" id="evGrid"></div>
+          <div class="pagination-bar" id="evPagination"></div>
+        </div>
+
+
+        <!-- ======================== CONTRACTORS PAGE ======================== -->
+        <div class="page-section" id="page-contractors">
+          <div class="page-header">
+            <div>
+              <h1>Contractors Directory</h1>
+              <p>Hire vetted farm service providers across Kenya</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-glow btn-sm-glow" onclick="becomeContractor()" id="becomeContractorBtn" style="display:none;"><i class="fas fa-user-plus"></i> <span>Become a Contractor</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openMyContractor()" id="myContractorBtn" style="display:none;"><i class="fas fa-briefcase"></i> <span>My Listing</span></button>
+              <button class="btn-glow btn-sm-glow" onclick="openContractorModal()" id="contractorCreateBtn" style="display:none;"><i class="fas fa-plus"></i> <span>Add Contractor</span></button>
+            </div>
+          </div>
+          <div class="table-toolbar" style="margin-bottom:16px;">
+            <div class="search-group">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search contractors or services..." id="ctSearch" oninput="loadContractorsPage()">
+            </div>
+            <div class="filter-group">
+              <select id="ctCounty" onchange="loadContractorsPage()"><option value="">All Counties</option></select>
+            </div>
+          </div>
+          <div class="card-grid" id="ctGrid"></div>
+          <div class="pagination-bar" id="ctPagination"></div>
+        </div>
+
+
+        <!-- ======================== ADMIN PAGE ======================== -->
+        <div class="page-section" id="page-admin">
+          <div class="page-header">
+            <div>
+              <h1>Admin Panel</h1>
+              <p>Moderate marketplace listings and manage site content</p>
+            </div>
+          </div>
+          <div class="agv-tabs">
+            <button class="agv-tab active" data-adm="review" onclick="setAdminTab('review')"><i class="fas fa-clipboard-check"></i> Marketplace Review</button>
+            <button class="agv-tab" data-adm="articles" onclick="setAdminTab('articles')"><i class="fas fa-newspaper"></i> Articles</button>
+            <button class="agv-tab" data-adm="crops" onclick="setAdminTab('crops')"><i class="fas fa-seedling"></i> Crop Diseases</button>
+            <button class="agv-tab" data-adm="livestock" onclick="setAdminTab('livestock')"><i class="fas fa-horse-head"></i> Livestock Diseases</button>
+            <button class="agv-tab" data-adm="guides" onclick="setAdminTab('guides')"><i class="fas fa-book"></i> Guides</button>
+            <button class="agv-tab" data-adm="events" onclick="setAdminTab('events')"><i class="fas fa-calendar-check"></i> Events</button>
+            <button class="agv-tab" data-adm="contractors" onclick="setAdminTab('contractors')"><i class="fas fa-user-tie"></i> Contractors</button>
+          </div>
+          <div id="adminContent"></div>
+        </div>
+
+
+      </div><!-- /dash-content -->
+    </main>
+  </div>
+
+
+  <!-- ===== MODALS ===== -->
+
+  <!-- Add Crop -->
+  <div class="modal" id="cropModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Crop</h3>
+        <span onclick="closeModal('cropModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="cropForm">
+        <div class="form-group"><label>Crop Name</label><input type="text" id="cropName" class="form-control" required></div>
+        <div class="form-group"><label>Variety</label><input type="text" id="cropVariety" class="form-control"></div>
+        <div class="form-group"><label>Area (acres)</label><input type="number" step="0.01" id="cropArea" class="form-control" required></div>
+        <div class="form-group"><label>Planting Date</label><input type="date" id="cropDate" class="form-control" required></div>
+        <div class="form-group"><label>Expected Harvest Date</label><input type="date" id="cropHarvest" class="form-control"></div>
+        <button type="submit" class="btn-glow" id="cropSubmit"><span>Save Crop</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Crop -->
+  <div class="modal" id="editCropModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Edit Crop</h3>
+        <span onclick="closeModal('editCropModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="editCropForm">
+        <div class="form-group"><label>Crop Name</label><input type="text" id="editCropName" class="form-control" required></div>
+        <div class="form-group"><label>Variety</label><input type="text" id="editCropVariety" class="form-control"></div>
+        <div class="form-group"><label>Area (acres)</label><input type="number" step="0.01" id="editCropArea" class="form-control" required></div>
+        <div class="form-group"><label>Planting Date</label><input type="date" id="editCropDate" class="form-control" required></div>
+        <div class="form-group"><label>Expected Harvest Date</label><input type="date" id="editCropHarvest" class="form-control"></div>
+        <button type="submit" class="btn-glow" id="editCropSubmit"><span>Update Crop</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Livestock -->
+  <div class="modal" id="livestockModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Livestock</h3>
+        <span onclick="closeModal('livestockModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="livestockForm">
+        <div class="form-group"><label>Species</label><input type="text" id="lsSpecies" class="form-control" required placeholder="e.g. Cattle, Goat"></div>
+        <div class="form-group"><label>Breed</label><input type="text" id="lsBreed" class="form-control"></div>
+        <div class="form-group"><label>Name (optional)</label><input type="text" id="lsName" class="form-control"></div>
+        <div class="form-group"><label>Gender</label><select id="lsGender" class="form-control"><option value="female">Female</option><option value="male">Male</option></select></div>
+        <div class="form-group"><label>Birth Date</label><input type="date" id="lsBirth" class="form-control"></div>
+        <button type="submit" class="btn-glow" id="lsSubmit"><span>Save Livestock</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Artificial Insemination Record -->
+  <div class="modal" id="breedingModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 id="breedingModalTitle" style="margin:0;">Add AI Record</h3>
+        <span onclick="closeModal('breedingModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="breedingForm">
+        <div class="form-group"><label>Animal *</label><select id="brLivestock" class="form-control" required><option value="">Select an animal...</option></select></div>
+        <div class="form-group"><label>Service Date *</label><input type="date" id="brDate" class="form-control" required></div>
+        <div class="form-group"><label>Breed / Semen Served</label><input type="text" id="brSire" class="form-control" placeholder="e.g. Holstein Friesian semen"></div>
+        <div class="form-group"><label>Method</label>
+          <select id="brMethod" class="form-control">
+            <option value="AI">Artificial Insemination</option>
+            <option value="Natural">Natural</option>
+            <option value="ET">Embryo Transfer</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Expected Calving Date</label><input type="date" id="brExpectedCalving" class="form-control"></div>
+        <div class="form-group"><label>Actual Calving Date</label><input type="date" id="brActualCalving" class="form-control"></div>
+        <div class="form-group"><label>Offspring Count</label><input type="number" min="0" id="brOffspring" class="form-control" placeholder="e.g. 1"></div>
+        <div class="form-group"><label>Outcome</label>
+          <select id="brSuccess" class="form-control">
+            <option value="">Pending</option>
+            <option value="1">Confirmed / In-calf</option>
+            <option value="0">Not Successful</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="brNotes" class="form-control" rows="2" placeholder="Optional notes"></textarea></div>
+        <button type="submit" class="btn-glow" id="brSubmit"><span>Save AI Record</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Livestock -->
+  <div class="modal" id="editLivestockModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Edit Livestock</h3>
+        <span onclick="closeModal('editLivestockModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="editLivestockForm">
+        <div class="form-group"><label>Species</label><input type="text" id="editLsSpecies" class="form-control" required></div>
+        <div class="form-group"><label>Breed</label><input type="text" id="editLsBreed" class="form-control"></div>
+        <div class="form-group"><label>Name</label><input type="text" id="editLsName" class="form-control"></div>
+        <div class="form-group"><label>Gender</label><select id="editLsGender" class="form-control"><option value="female">Female</option><option value="male">Male</option></select></div>
+        <div class="form-group"><label>Birth Date</label><input type="date" id="editLsBirth" class="form-control"></div>
+        <button type="submit" class="btn-glow" id="editLsSubmit"><span>Update Livestock</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Transaction -->
+  <div class="modal" id="transactionModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Transaction</h3>
+        <span onclick="closeModal('transactionModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="transactionForm">
+        <div class="form-group"><label>Type</label><select id="txnType" class="form-control"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+        <div class="form-group"><label>Category</label><input type="text" id="txnCategory" class="form-control" required placeholder="e.g. Crop Sales, Feed"></div>
+        <div class="form-group"><label>Amount (KSh)</label><input type="number" step="0.01" id="txnAmount" class="form-control" required></div>
+        <div class="form-group"><label>Date</label><input type="date" id="txnDate" class="form-control" required></div>
+        <div class="form-group"><label>Description</label><textarea id="txnDesc" class="form-control" rows="2"></textarea></div>
+        <button type="submit" class="btn-glow" id="txnSubmit"><span>Save Transaction</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Transaction -->
+  <div class="modal" id="editTransactionModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Edit Transaction</h3>
+        <span onclick="closeModal('editTransactionModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="editTransactionForm">
+        <div class="form-group"><label>Type</label><select id="editTxnType" class="form-control"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+        <div class="form-group"><label>Category</label><input type="text" id="editTxnCategory" class="form-control" required></div>
+        <div class="form-group"><label>Amount (KSh)</label><input type="number" step="0.01" id="editTxnAmount" class="form-control" required></div>
+        <div class="form-group"><label>Date</label><input type="date" id="editTxnDate" class="form-control" required></div>
+        <div class="form-group"><label>Description</label><textarea id="editTxnDesc" class="form-control" rows="2"></textarea></div>
+        <button type="submit" class="btn-glow" id="editTxnSubmit"><span>Update Transaction</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Farm Record -->
+  <div class="modal" id="recordModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Farm Record</h3>
+        <span onclick="closeModal('recordModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="recordForm">
+        <div class="form-group"><label>Title</label><input type="text" id="recTitle" class="form-control" required></div>
+        <div class="form-group"><label>Type</label><select id="recType" class="form-control"><option value="general">General</option><option value="field_work">Field Work</option><option value="harvest">Harvest</option><option value="maintenance">Maintenance</option></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="recDate" class="form-control" required></div>
+        <div class="form-group"><label>Description</label><textarea id="recDesc" class="form-control" rows="3"></textarea></div>
+        <button type="submit" class="btn-glow" id="recSubmit"><span>Save Record</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Supply Modal -->
+  <div class="modal" id="supplyModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Supply</h3>
+        <span onclick="closeModal('supplyModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="supplyForm">
+        <div class="form-group"><label>Supply Name</label><input type="text" id="supName" class="form-control" required></div>
+        <div class="form-group"><label>Category</label><input type="text" id="supCategory" class="form-control" placeholder="e.g. Feed, Fertilizer, Medicine"></div>
+        <div class="row g-2"><div class="col-6"><div class="form-group"><label>Quantity</label><input type="number" step="0.01" id="supQty" class="form-control"></div></div><div class="col-6"><div class="form-group"><label>Unit</label><input type="text" id="supUnit" class="form-control" placeholder="kg, L, bags"></div></div></div>
+        <div class="form-group"><label>Unit Cost (KSh)</label><input type="number" step="0.01" id="supCost" class="form-control"></div>
+        <div class="form-group"><label>Supplier</label><input type="text" id="supSupplier" class="form-control"></div>
+        <div class="form-group"><label>Notes</label><textarea id="supNotes" class="form-control" rows="2"></textarea></div>
+        <button type="submit" class="btn-glow" id="supSubmit"><span>Save Supply</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Supply Modal -->
+  <div class="modal" id="editSupplyModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Edit Supply</h3>
+        <span onclick="closeModal('editSupplyModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="editSupplyForm">
+        <div class="form-group"><label>Supply Name</label><input type="text" id="editSupName" class="form-control" required></div>
+        <div class="form-group"><label>Category</label><input type="text" id="editSupCategory" class="form-control"></div>
+        <div class="row g-2"><div class="col-6"><div class="form-group"><label>Quantity</label><input type="number" step="0.01" id="editSupQty" class="form-control"></div></div><div class="col-6"><div class="form-group"><label>Unit</label><input type="text" id="editSupUnit" class="form-control"></div></div></div>
+        <div class="form-group"><label>Unit Cost (KSh)</label><input type="number" step="0.01" id="editSupCost" class="form-control"></div>
+        <div class="form-group"><label>Supplier</label><input type="text" id="editSupSupplier" class="form-control"></div>
+        <div class="form-group"><label>Notes</label><textarea id="editSupNotes" class="form-control" rows="2"></textarea></div>
+        <button type="submit" class="btn-glow" id="editSupSubmit"><span>Update Supply</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Task</h3>
+        <span onclick="closeModal('taskModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="taskForm">
+        <div class="form-group"><label>Title</label><input type="text" id="taskTitle" class="form-control" required></div>
+        <div class="form-group"><label>Description</label><textarea id="taskDesc" class="form-control" rows="2"></textarea></div>
+        <div class="row g-2"><div class="col-6"><div class="form-group"><label>Priority</label><select id="taskPriority" class="form-control"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div></div><div class="col-6"><div class="form-group"><label>Due Date</label><input type="date" id="taskDue" class="form-control"></div></div></div>
+        <button type="submit" class="btn-glow" id="taskSubmit"><span>Save Task</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div class="modal" id="editTaskModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Edit Task</h3>
+        <span onclick="closeModal('editTaskModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="editTaskForm">
+        <div class="form-group"><label>Title</label><input type="text" id="editTaskTitle" class="form-control" required></div>
+        <div class="form-group"><label>Description</label><textarea id="editTaskDesc" class="form-control" rows="2"></textarea></div>
+        <div class="row g-2"><div class="col-6"><label>Priority</label><select id="editTaskPriority" class="form-control"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div><div class="col-6"><label>Due Date</label><input type="date" id="editTaskDue" class="form-control"></div></div>
+        <button type="submit" class="btn-glow" id="editTaskSubmit"><span>Update Task</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vaccination Modal -->
+  <div class="modal" id="vaccineModal">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;">Add Vaccination</h3>
+        <span onclick="closeModal('vaccineModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="vaccineForm">
+        <div class="form-group"><label>Livestock</label><select id="vaccineLivestock" class="form-control" required></select></div>
+        <div class="form-group"><label>Vaccine Name</label><input type="text" id="vaccineName" class="form-control" required></div>
+        <div class="form-group"><label>Date Administered</label><input type="date" id="vaccineDate" class="form-control" required></div>
+        <div class="form-group"><label>Next Due Date</label><input type="date" id="vaccineDue" class="form-control"></div>
+        <button type="submit" class="btn-glow" id="vaccineSubmit"><span>Save Vaccination</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== NEW MODULES: MARKETPLACE / AGROVET / EVENTS / CONTRACTORS / ADMIN ===== -->
+
+  <!-- Marketplace Product Modal -->
+  <div class="modal" id="productModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="productModalTitle">Post Listing</h3>
+        <span onclick="closeProductModal()" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="productForm">
+        <div class="row g-2">
+          <div class="col-12"><div class="form-group"><label>Title *</label><input type="text" id="mpTitle" class="form-control" required placeholder="e.g. 50kg Bag of Certified Maize Seed"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Category *</label><select id="mpCategorySel" class="form-control" required><option value="">-- Select --</option></select></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Condition</label><select id="mpCondition" class="form-control"><option value="new">New</option><option value="used">Used</option><option value="reconditioned">Reconditioned</option></select></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-group"><label>Price (KSh) *</label><input type="number" step="0.01" min="0" id="mpPrice" class="form-control" required></div></div>
+          <div class="col-md-4"><div class="form-group"><label>Quantity *</label><input type="number" step="1" min="5" id="mpQty" class="form-control" value="5" required><small class="form-text">Minimum quantity is 5</small></div></div>
+          <div class="col-md-4"><div class="form-group"><label>Unit</label><input type="text" id="mpQtyUnit" class="form-control" placeholder="kg, bag, head"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>County</label><select id="mpCountySel" class="form-control"><option value="">Select County</option></select></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Location / Town</label><input type="text" id="mpLocation" class="form-control" placeholder="e.g. Nakuru town, Naivasha"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Seller Name</label><input type="text" id="mpSellerName" class="form-control"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Phone *</label><input type="text" id="mpPhone" class="form-control" required placeholder="07XXXXXXXX"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>WhatsApp</label><input type="text" id="mpWhatsapp" class="form-control" placeholder="07XXXXXXXX"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Email</label><input type="email" id="mpEmail" class="form-control"></div></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="mpDesc" class="form-control" rows="3" placeholder="Describe your product..."></textarea></div>
+        <div class="form-group">
+          <label>Photos (up to 6, max 5MB each)</label>
+          <input type="file" id="mpImageInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none">
+          <div class="upload-dropzone" onclick="document.getElementById('mpImageInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to choose photos</p>
+          </div>
+          <div class="img-preview-row" id="mpImagePreview"></div>
+        </div>
+        <button type="submit" class="btn-glow" id="mpSubmit"><span>Post Listing</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="modal" id="productDetailModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="color:#fff;margin:0;" id="pdTitle">Product</h3>
+        <span onclick="closeModal('productDetailModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <div id="pdBody"></div>
+    </div>
+  </div>
+
+  <!-- Event Modal -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="eventModalTitle">Create Event</h3>
+        <span onclick="closeModal('eventModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="eventForm">
+        <div class="form-group"><label>Event Title *</label><input type="text" id="evTitle" class="form-control" required></div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Organizer</label><input type="text" id="evOrganizer" class="form-control"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>County</label><select id="evCounty" class="form-control"><option value="">Select County</option></select></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Venue</label><input type="text" id="evVenue" class="form-control" placeholder="e.g. KALRO Farm, Njoro"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Date *</label><input type="date" id="evDate" class="form-control" required></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Time</label><input type="text" id="evTime" class="form-control" placeholder="e.g. 9:00 AM - 4:00 PM"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Registration Link</label><input type="url" id="evRegLink" class="form-control" placeholder="https://..."></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Contact Person</label><input type="text" id="evContact" class="form-control"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Contact Phone</label><input type="text" id="evPhone" class="form-control"></div></div>
+        </div>
+        <div class="form-group"><label>Minimum People *</label><input type="number" id="evMinPeople" class="form-control" min="5" value="5" required><small class="form-text">At least 5 people required</small></div>
+        <div class="form-group"><label>Description</label><textarea id="evDesc" class="form-control" rows="3"></textarea></div>
+        <div class="form-group">
+          <label>Poster (optional)</label>
+          <input type="file" id="evPoster" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+          <div class="upload-dropzone" onclick="document.getElementById('evPoster').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to choose poster</p>
+          </div>
+        </div>
+        <button type="submit" class="btn-glow" id="evSubmit"><span>Save Event</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contractor Modal -->
+  <div class="modal" id="contractorModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="contractorModalTitle">Add Contractor</h3>
+        <span onclick="closeModal('contractorModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="contractorForm">
+        <div class="form-group"><label>Business Name *</label><input type="text" id="ctName" class="form-control" required></div>
+        <div class="form-group"><label>Services * (comma separated)</label><input type="text" id="ctServices" class="form-control" required placeholder="e.g. Tractor Ploughing, Land Clearing, Harvesting"></div>
+        <div class="form-group"><label>Description</label><textarea id="ctDesc" class="form-control" rows="2"></textarea></div>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-group"><label>Owner Name</label><input type="text" id="ctOwner" class="form-control"></div></div>
+          <div class="col-md-4"><div class="form-group"><label>County</label><select id="ctCountySel" class="form-control"><option value="">Select County</option></select></div></div>
+          <div class="col-md-4"><div class="form-group"><label>Location</label><input type="text" id="ctLocation" class="form-control"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-4"><div class="form-group"><label>Phone *</label><input type="text" id="ctPhone" class="form-control" required></div></div>
+          <div class="col-md-4"><div class="form-group"><label>WhatsApp</label><input type="text" id="ctWhatsapp" class="form-control"></div></div>
+          <div class="col-md-4"><div class="form-group"><label>Email</label><input type="email" id="ctEmail" class="form-control"></div></div>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Years Experience</label><input type="number" min="0" id="ctYears" class="form-control" value="0"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Operating Hours</label><input type="text" id="ctHours" class="form-control" placeholder="e.g. Mon-Sat 8AM-6PM"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Photos (optional)</label>
+          <input type="file" id="ctImageInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none">
+          <div class="upload-dropzone" onclick="document.getElementById('ctImageInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to choose photos</p>
+          </div>
+          <div class="img-preview-row" id="ctImagePreview"></div>
+        </div>
+        <button type="submit" class="btn-glow" id="ctSubmit"><span>Save Contractor</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Article Modal (admin) -->
+  <div class="modal" id="articleModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="articleModalTitle">Article</h3>
+        <span onclick="closeModal('articleModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="articleForm">
+        <div class="form-group"><label>Title *</label><input type="text" id="arTitle" class="form-control" required></div>
+        <div class="form-group"><label>Category</label><input type="text" id="arCategory" class="form-control" placeholder="e.g. Crop Farming, Irrigation, Livestock"></div>
+        <div class="form-group"><label>Content *</label><textarea id="arContent" class="form-control" rows="6" required></textarea></div>
+        <div class="form-group"><label>Featured Image (optional)</label><input type="file" id="arImage" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none"><div class="upload-dropzone" onclick="document.getElementById('arImage').click()"><i class="fas fa-cloud-upload-alt"></i><p>Click to choose image</p></div></div>
+        <button type="submit" class="btn-glow" id="arSubmit"><span>Save Article</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Crop Disease Modal (admin) -->
+  <div class="modal" id="cropDiseaseModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="cropDiseaseModalTitle">Crop Disease</h3>
+        <span onclick="closeModal('cropDiseaseModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="cropDiseaseForm">
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Disease Name *</label><input type="text" id="cdName" class="form-control" required></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Affected Crop(s)</label><input type="text" id="cdCrop" class="form-control" placeholder="e.g. Maize, Beans"></div></div>
+        </div>
+        <div class="form-group"><label>Symptoms</label><textarea id="cdSymptoms" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Causes</label><textarea id="cdCauses" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Prevention</label><textarea id="cdPrevention" class="form-control" rows="2"></textarea></div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Medication</label><input type="text" id="cdMedication" class="form-control"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Application Instructions</label><input type="text" id="cdApplication" class="form-control"></div></div>
+        </div>
+        <div class="form-group"><label>Image (optional)</label><input type="file" id="cdImage" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none"><div class="upload-dropzone" onclick="document.getElementById('cdImage').click()"><i class="fas fa-cloud-upload-alt"></i><p>Click to choose image</p></div></div>
+        <button type="submit" class="btn-glow" id="cdSubmit"><span>Save Disease</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Livestock Disease Modal (admin) -->
+  <div class="modal" id="livestockDiseaseModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="livestockDiseaseModalTitle">Livestock Disease</h3>
+        <span onclick="closeModal('livestockDiseaseModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="livestockDiseaseForm">
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Disease Name *</label><input type="text" id="ldName" class="form-control" required></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Animal Affected</label><input type="text" id="ldAnimal" class="form-control" placeholder="e.g. Cattle, Goats"></div></div>
+        </div>
+        <div class="form-group"><label>Symptoms</label><textarea id="ldSymptoms" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Prevention</label><textarea id="ldPrevention" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Vaccination Schedule</label><textarea id="ldVaccine" class="form-control" rows="2"></textarea></div>
+        <div class="row g-2">
+          <div class="col-md-6"><div class="form-group"><label>Medication</label><input type="text" id="ldMedication" class="form-control"></div></div>
+          <div class="col-md-6"><div class="form-group"><label>Dosage</label><input type="text" id="ldDosage" class="form-control"></div></div>
+        </div>
+        <div class="form-group"><label>Veterinary Advice</label><textarea id="ldVet" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Image (optional)</label><input type="file" id="ldImage" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none"><div class="upload-dropzone" onclick="document.getElementById('ldImage').click()"><i class="fas fa-cloud-upload-alt"></i><p>Click to choose image</p></div></div>
+        <button type="submit" class="btn-glow" id="ldSubmit"><span>Save Disease</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Farming Guide Modal (admin) -->
+  <div class="modal" id="guideModal">
+    <div class="modal-content modal-lg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="color:#fff;margin:0;" id="guideModalTitle">Farming Guide</h3>
+        <span onclick="closeModal('guideModal')" style="cursor:pointer;font-size:28px;color:#999;">&times;</span>
+      </div>
+      <form id="guideForm">
+        <div class="row g-2">
+          <div class="col-md-8"><div class="form-group"><label>Title *</label><input type="text" id="fgTitle" class="form-control" required></div></div>
+          <div class="col-md-4"><div class="form-group"><label>Category</label><input type="text" id="fgCategory" class="form-control" placeholder="Crop Farming / Livestock"></div></div>
+        </div>
+        <div class="form-group"><label>Content *</label><textarea id="fgContent" class="form-control" rows="7" required></textarea></div>
+        <div class="form-group"><label>Image (optional)</label><input type="file" id="fgImage" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none"><div class="upload-dropzone" onclick="document.getElementById('fgImage').click()"><i class="fas fa-cloud-upload-alt"></i><p>Click to choose image</p></div></div>
+        <button type="submit" class="btn-glow" id="fgSubmit"><span>Save Guide</span></button>
+      </form>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+  /* ===================================================================
+     KIBOE FarmSync Dashboard - Main Application Logic
+     =================================================================== */
+  const API_URL = 'http://localhost:5000';
+  const $ = id => document.getElementById(id);
+  const toastContainer = $('toastContainer');
+  const mainLoader = $('mainLoader');
+  let editContext = { type: null, id: null };
+  let confirmCallback = null;
+
+  /* ---- API Helper ---- */
+  const API = {
+    getToken() { return localStorage.getItem('kiboe_token'); },
+    isAuthenticated() { return !!this.getToken(); },
+    async request(method, path, body) {
+      const h = { 'Content-Type': 'application/json' };
+      const t = this.getToken();
+      if (t) h['Authorization'] = 'Bearer ' + t;
+      const o = { method, headers: h };
+      if (body) o.body = JSON.stringify(body);
+      const r = await fetch(API_URL + path, o);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.message || d.error || 'Request failed');
+      return d;
+    },
+    getProfile() { return this.request('GET', '/api/auth/profile'); },
+    updateProfile(d) { return this.request('PUT', '/api/auth/profile', d); },
+    changePassword(d) { return this.request('PUT', '/api/auth/password', d); },
+    getCrops(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/crops?' + q); },
+    createCrop(d) { return this.request('POST', '/api/crops', d); },
+    updateCrop(i,d) { return this.request('PUT', '/api/crops/' + i, d); },
+    deleteCrop(i) { return this.request('DELETE', '/api/crops/' + i); },
+    getLivestock(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/livestock?' + q); },
+    createLivestock(d) { return this.request('POST', '/api/livestock', d); },
+    updateLivestock(i,d) { return this.request('PUT', '/api/livestock/' + i, d); },
+    deleteLivestock(i) { return this.request('DELETE', '/api/livestock/' + i); },
+    getBreedingRecords(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/livestock/breeding?' + q); },
+    getBreedingSummary() { return this.request('GET', '/api/livestock/breeding/summary'); },
+    getLivestockBreeding(lid) { return this.request('GET', '/api/livestock/' + lid + '/breeding'); },
+    createBreedingRecord(lid, d) { return this.request('POST', '/api/livestock/' + lid + '/breeding', d); },
+    updateBreedingRecord(id, d) { return this.request('PUT', '/api/livestock/breeding/' + id, d); },
+    deleteBreedingRecord(id) { return this.request('DELETE', '/api/livestock/breeding/' + id); },
+    getTransactions(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/transactions?' + q); },
+    createTransaction(d) { return this.request('POST', '/api/transactions', d); },
+    updateTransaction(i,d) { return this.request('PUT', '/api/transactions/' + i, d); },
+    deleteTransaction(i) { return this.request('DELETE', '/api/transactions/' + i); },
+    getFarmRecords(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/farm-records?' + q); },
+    createFarmRecord(d) { return this.request('POST', '/api/farm-records', d); },
+    getVaccinations(lid) { return this.request('GET', '/api/livestock/' + lid + '/vaccinations'); },
+    createVaccination(lid, d) { return this.request('POST', '/api/livestock/' + lid + '/vaccinations', d); },
+    deleteFarmRecord(i) { return this.request('DELETE', '/api/farm-records/' + i); },
+    getNotifications() { return this.request('GET', '/api/notifications'); },
+    getReportSummary() { return this.request('GET', '/api/reports/summary'); },
+    getSupplies(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/supplies?' + q); },
+    createSupply(d) { return this.request('POST', '/api/supplies', d); },
+    updateSupply(i,d) { return this.request('PUT', '/api/supplies/' + i, d); },
+    deleteSupply(i) { return this.request('DELETE', '/api/supplies/' + i); },
+    getTasks(p) { const q = new URLSearchParams(p); return this.request('GET', '/api/tasks?' + q); },
+    getUpcomingTasks() { return this.request('GET', '/api/tasks/upcoming'); },
+    createTask(d) { return this.request('POST', '/api/tasks', d); },
+    updateTask(i,d) { return this.request('PUT', '/api/tasks/' + i, d); },
+    deleteTask(i) { return this.request('DELETE', '/api/tasks/' + i); },
+    completeTask(i) { return this.request('POST', '/api/tasks/' + i + '/complete'); },
+    forgotPassword(e) { return this.request('POST', '/api/auth/forgot', { email: e }); },
+    resetPassword(t, p) { return this.request('POST', '/api/auth/reset', { token: t, new_password: p }); },
+    restoreItem(type, id) {
+      const paths = { crop: '/api/crops/', livestock: '/api/livestock/', transaction: '/api/transactions/', record: '/api/farm-records/' };
+      return this.request('POST', (paths[type] || '/api/crops/') + id + '/restore');
+    },
+    async uploadProfilePicture(file) {
+      const t = this.getToken();
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const r = await fetch(API_URL + '/api/auth/profile-picture', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + t }, body: formData
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.message || 'Upload failed');
+      return d;
+    },
+  };
+
+  /* ---- Toast ---- */
+  function toast(msg, type='success') {
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle' };
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<i class="fas ' + (icons[type]||icons.success) + '"></i><span>' + msg + '</span><button class="toast-close">&times;</button>';
+    t.querySelector('.toast-close').onclick = () => t.remove();
+    toastContainer.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 4000);
+  }
+
+  /* ---- Loading ---- */
+  function showLoader(msg) { mainLoader.classList.add('show'); mainLoader.querySelector('p').textContent = msg || 'Loading...'; }
+  function hideLoader() { mainLoader.classList.remove('show'); }
+
+  /* ---- Confirm ---- */
+  function showConfirm(title, msg, danger) {
+    return new Promise(resolve => {
+      $('confirmTitle').textContent = title;
+      $('confirmMsg').textContent = msg;
+      const ok = $('confirmOk');
+      ok.className = danger ? 'btn-confirm btn-confirm-danger' : 'btn-confirm';
+      ok.textContent = danger ? 'Delete' : 'Yes';
+      $('confirmOverlay').classList.add('show');
+      confirmCallback = resolve;
+    });
+  }
+  $('confirmOk').onclick = function() { $('confirmOverlay').classList.remove('show'); if (confirmCallback) { confirmCallback(true); confirmCallback = null; } };
+  $('confirmCancel').onclick = function() { $('confirmOverlay').classList.remove('show'); if (confirmCallback) { confirmCallback(false); confirmCallback = null; } };
+  $('confirmOverlay').onclick = function(e) { if (e.target === this) { $('confirmOverlay').classList.remove('show'); if (confirmCallback) { confirmCallback(false); confirmCallback = null; } } };
+
+  /* ---- Modal helpers ---- */
+  function openModal(id) { const el = $(id); if (el) el.style.display = 'flex'; }
+  function closeModal(id) { const el = $(id); if (el) el.style.display = 'none'; }
+  // Close modal on backdrop click
+  document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; }); });
+
+  function setBtnLoading(btn, loading) {
+    if (loading) btn.classList.add('btn-loading'); else btn.classList.remove('btn-loading');
+  }
+
+  function logout() { localStorage.removeItem('kiboe_token'); window.location.href = 'index.html'; }
+
+  function escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function timeAgo(date) {
+    const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+  }
+
+  /* ---- Page Navigation ---- */
+  function showPage(page) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    const sec = $('page-' + page);
+    if (sec) sec.classList.add('active');
+    document.querySelectorAll('#sidebarNav .nav-link').forEach(l => l.classList.remove('active'));
+    const link = document.querySelector('#sidebarNav .nav-link[data-page="' + page + '"]');
+    if (link) link.classList.add('active');
+    // Close mobile sidebar
+    $('dashSidebar').classList.remove('open');
+    // Load page content
+    if (page === 'dashboard') loadDashboard();
+    else if (page === 'crops') loadTablePage('crops');
+    else if (page === 'livestock') loadTablePage('livestock');
+    else if (page === 'transactions') loadTablePage('txn');
+    else if (page === 'records') loadTablePage('rec');
+    else if (page === 'reports') loadReportsPage();
+    else if (page === 'settings') loadSettingsPage();
+    else if (page === 'supplies') loadTablePage('supply');
+    else if (page === 'tasks') loadTablePage('task');
+    else if (page === 'calendar') loadCalendar();
+    else if (page === 'marketplace') loadMarketplacePage();
+    else if (page === 'agrovet') loadAgrovetPage();
+    else if (page === 'events') loadEventsPage();
+    else if (page === 'contractors') loadContractorsPage();
+    else if (page === 'admin') loadAdminPage();
+  }
+  document.querySelectorAll('#sidebarNav .nav-link').forEach(l => {
+    l.addEventListener('click', function(e) {
+      const page = this.dataset.page;
+      if (page) { e.preventDefault(); showPage(page); }
+    });
+  });
+  // Sidebar toggle
+  $('sidebarToggle').onclick = function() { $('dashSidebar').classList.toggle('open'); };
+  // Close sidebar on outside click (mobile)
+  document.addEventListener('click', function(e) {
+    const sb = $('dashSidebar');
+    if (window.innerWidth < 992 && sb.classList.contains('open') && !sb.contains(e.target) && e.target !== $('sidebarToggle') && !$('sidebarToggle').contains(e.target)) {
+      sb.classList.remove('open');
+    }
+  });
+
+  /* ================================================================
+     PAGINATION & TABLE STATE
+     ================================================================ */
+  const tableState = {
+    crops: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+    livestock: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+    txn: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+    rec: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+    supply: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+    task: { data: [], filtered: [], page: 1, perPage: 10, sortBy: null, sortDir: 'asc' },
+  };
+
+  function paginate(state, bodyId, paginationId) {
+    const total = state.filtered.length;
+    const totalPages = Math.ceil(total / state.perPage) || 1;
+    if (state.page > totalPages) state.page = totalPages;
+    const start = (state.page - 1) * state.perPage;
+    const end = start + state.perPage;
+    const pageData = state.filtered.slice(start, end);
+    renderTableRows(bodyId, pageData);
+    renderPagination(paginationId, state, total, totalPages);
+  }
+
+  function renderPagination(id, state, total, totalPages) {
+    const el = $(id);
+    if (!el) return;
+    if (total <= state.perPage) { el.innerHTML = ''; return; }
+    let html = '<div class="page-info">' + total + ' records &middot; Page ' + state.page + ' of ' + totalPages + '</div>';
+    html += '<div class="page-btns">';
+    html += '<button ' + (state.page <= 1 ? 'disabled' : '') + ' onclick="goPage(\'' + id.replace('Pagination','') + '\',1)"><i class="fas fa-angle-double-left"></i></button>';
+    html += '<button ' + (state.page <= 1 ? 'disabled' : '') + ' onclick="goPage(\'' + id.replace('Pagination','') + '\',' + (state.page - 1) + ')"><i class="fas fa-angle-left"></i></button>';
+    // Show page numbers
+    const startPage = Math.max(1, state.page - 2);
+    const endPage = Math.min(totalPages, state.page + 2);
+    for (let i = startPage; i <= endPage; i++) {
+      html += '<button class="' + (i === state.page ? 'active' : '') + '" onclick="goPage(\'' + id.replace('Pagination','') + '\',' + i + ')">' + i + '</button>';
+    }
+    html += '<button ' + (state.page >= totalPages ? 'disabled' : '') + ' onclick="goPage(\'' + id.replace('Pagination','') + '\',' + (state.page + 1) + ')"><i class="fas fa-angle-right"></i></button>';
+    html += '<button ' + (state.page >= totalPages ? 'disabled' : '') + ' onclick="goPage(\'' + id.replace('Pagination','') + '\',' + totalPages + ')"><i class="fas fa-angle-double-right"></i></button>';
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function goPage(key, page) {
+    if (!tableState[key]) return;
+    tableState[key].page = page;
+    const bodyId = key === 'txn' ? 'txnTableBody' : key === 'rec' ? 'recTableBody' : key + 'TableBody';
+    const pagId = key + 'Pagination';
+    paginate(tableState[key], bodyId, pagId);
+  }
+
+  /* ---- Sorting ---- */
+  function sortTable(key, field) {
+    const st = tableState[key];
+    if (!st) return;
+    if (st.sortBy === field) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+    else { st.sortBy = field; st.sortDir = 'asc'; }
+    st.filtered.sort((a, b) => {
+      let va = a[field] || '', vb = b[field] || '';
+      if (field === 'amount' || field === 'area') { va = +va; vb = +vb; }
+      else { va = String(va).toLowerCase(); vb = String(vb).toLowerCase(); }
+      if (va < vb) return st.sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return st.sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    st.page = 1;
+    const bodyId = key === 'txn' ? 'txnTableBody' : key === 'rec' ? 'recTableBody' : key + 'TableBody';
+    const pagId = key + 'Pagination';
+    paginate(st, bodyId, pagId);
+    // Update sort icons
+    document.querySelectorAll('#' + (key==='txn'?'txnTable':key==='rec'?'recTable':key+'Table') + ' .sort-header i').forEach(i => i.className = 'fas fa-sort');
+    const th = document.querySelector('#' + (key==='txn'?'txnTable':key==='rec'?'recTable':key+'Table') + ' .sort-header[data-sort="' + field + '"] i');
+    if (th) th.className = 'fas fa-sort-' + (st.sortDir === 'asc' ? 'up' : 'down');
+  }
+
+  /* ---- Local filtering ---- */
+  function localFilter(key) {
+    const st = tableState[key];
+    if (!st) return;
+    const searchInput = $(key + 'SearchInput') || $(key.replace('txn','txnSearch').replace('rec','recSearch'));
+    const q = searchInput ? searchInput.value.toLowerCase() : '';
+    let filtered = st.data.filter(item => {
+      const text = Object.values(item).join(' ').toLowerCase();
+      return text.includes(q);
+    });
+    // Apply type/status filter
+    const typeFilter = $(key + 'TypeFilter') || $(key + 'StatusFilter');
+    if (typeFilter && typeFilter.value) {
+      const fv = typeFilter.value.toLowerCase();
+      if (key === 'txn') filtered = filtered.filter(t => (t.type||'').toLowerCase() === fv);
+      else if (key === 'rec') filtered = filtered.filter(r => (r.record_type||'').toLowerCase() === fv);
+      else filtered = filtered.filter(item => (item.status||'').toLowerCase() === fv);
+    }
+    st.filtered = filtered;
+    st.page = 1;
+    const bodyId = key === 'txn' ? 'txnTableBody' : key === 'rec' ? 'recTableBody' : key + 'TableBody';
+    const pagId = key + 'Pagination';
+    paginate(st, bodyId, pagId);
+  }
+
+  /* ---- Global Search ---- */
+  function globalSearch(val) {
+    // Just a visual helper - we can expand later
+  }
+
+  /* ================================================================
+     TABLE RENDERERS
+     ================================================================ */
+  function renderTableRows(bodyId, data) {
+    const body = $(bodyId);
+    if (!body) return;
+    if (!data.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="10"><i class="fas fa-inbox"></i> No records found</td></tr>';
+      return;
+    }
+    let html = '';
+    const key = bodyId.replace('TableBody','').replace('txn','txn_');
+    if (bodyId === 'cropsTableBody') {
+      data.forEach(c => {
+        const statusClass = c.status === 'harvested' ? 'success' : c.status === 'failed' ? 'danger' : 'warning';
+        html += '<tr><td>' + escHtml(c.name) + '</td><td>' + escHtml(c.variety||'-') + '</td><td>' + (+c.area||0) + ' ac</td><td>' + (c.planting_date||'') + '</td><td>' + (c.expected_harvest_date||'-') + '</td><td><span class="badge bg-' + statusClass + '">' + (c.status||'growing') + '</span></td><td><div class="action-btns"><button class="btn-edit" onclick="editCrop(' + c.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="confirmDelete(\'crop\',' + c.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    } else if (bodyId === 'livestockTableBody') {
+      data.forEach(l => {
+        html += '<tr><td>' + escHtml(l.name||'-') + '</td><td>' + escHtml(l.species) + '</td><td>' + escHtml(l.breed||'-') + '</td><td>' + (l.gender||'') + '</td><td>' + (l.birth_date||'-') + '</td><td><span class="badge bg-' + (l.status==='active'?'success':'secondary') + '">' + (l.status||'') + '</span></td><td><div class="action-btns"><button class="btn-vaccine" onclick="showVaccinations(' + l.id + ')" title="Vaccinations"><i class="fas fa-syringe"></i></button><button class="btn-edit" onclick="editLivestock(' + l.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="confirmDelete(\'livestock\',' + l.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    } else if (bodyId === 'txnTableBody') {
+      data.forEach(t => {
+        html += '<tr><td><span class="badge bg-' + (t.type==='income'?'success':'danger') + '">' + (t.type||'') + '</span></td><td>' + escHtml(t.category) + '</td><td><strong>KSh ' + (+t.amount||0).toLocaleString() + '</strong></td><td>' + (t.transaction_date||'') + '</td><td>' + escHtml(t.description||'-') + '</td><td><div class="action-btns"><button class="btn-edit" onclick="editTransaction(' + t.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="confirmDelete(\'transaction\',' + t.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    } else if (bodyId === 'recTableBody') {
+      data.forEach(r => {
+        html += '<tr><td>' + escHtml(r.title) + '</td><td><span class="badge bg-info">' + (r.record_type||'general') + '</span></td><td>' + (r.record_date||'') + '</td><td>' + escHtml(r.description||'-') + '</td><td><div class="action-btns"><button class="btn-delete" onclick="confirmDelete(\'record\',' + r.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    } else if (bodyId === 'supplyTableBody') {
+      data.forEach(s => {
+        const lowStock = +s.low_stock_threshold > 0 && +s.quantity <= +s.low_stock_threshold;
+        html += '<tr><td>' + escHtml(s.name) + (lowStock ? ' <span class="badge bg-danger">Low</span>' : '') + '</td><td>' + escHtml(s.category||'-') + '</td><td>' + (+s.quantity||0) + '</td><td>' + escHtml(s.unit||'-') + '</td><td>KSh ' + (+s.unit_cost||0).toLocaleString() + '</td><td>' + escHtml(s.supplier||'-') + '</td><td><div class="action-btns"><button class="btn-edit" onclick="editSupply(' + s.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="confirmDelete(\'supply\',' + s.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    } else if (bodyId === 'taskTableBody') {
+      data.forEach(t => {
+        const pClass = t.priority === 'urgent' ? 'danger' : t.priority === 'high' ? 'warning' : t.priority === 'low' ? 'secondary' : 'info';
+        const sClass = t.status === 'completed' ? 'success' : t.status === 'in_progress' ? 'info' : t.status === 'cancelled' ? 'secondary' : 'warning';
+        const overdue = t.status !== 'completed' && t.due_date && new Date(t.due_date) < new Date();
+        html += '<tr><td>' + escHtml(t.title) + (overdue ? ' <span class="badge bg-danger">Overdue</span>' : '') + '</td><td><span class="badge bg-' + pClass + '">' + (t.priority||'medium') + '</span></td><td><span class="badge bg-' + sClass + '">' + (t.status||'pending') + '</span></td><td>' + (t.due_date||'-') + '</td><td><div class="action-btns">' + (t.status !== 'completed' ? '<button class="btn-edit bg-success" onclick="completeTask(' + t.id + ')" title="Complete"><i class="fas fa-check"></i></button>' : '') + '<button class="btn-edit" onclick="editTask(' + t.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="confirmDelete(\'task\',' + t.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>';
+      });
+    }
+    body.innerHTML = html;
+  }
+
+  /* ================================================================
+     DATA LOADERS
+     ================================================================ */
+  // Backend wraps list responses as data: { crops: [...] }, { livestock: [...] },
+  // { transactions: [...] }, { farm_records: [...] }, etc. Unwrap to the plain array.
+  function unwrapList(res) {
+    const d = res && res.data;
+    if (Array.isArray(d)) return d;
+    if (d && typeof d === 'object') {
+      const keys = Object.keys(d);
+      if (keys.length === 1 && Array.isArray(d[keys[0]])) return d[keys[0]];
+    }
+    return [];
+  }
+
+  async function loadTablePage(key) {
+    showLoader('Loading ' + key + '...');
+    try {
+      const p = await API.getProfile();
+      const st = tableState[key];
+      let res;
+      if (key === 'crops') { res = await API.getCrops(); $('cropCount').textContent = unwrapList(res).length + ' records'; }
+      else if (key === 'livestock') { res = await API.getLivestock(); $('livestockCount').textContent = unwrapList(res).length + ' records'; }
+      else if (key === 'txn') { res = await API.getTransactions(); $('txnCount').textContent = unwrapList(res).length + ' records'; }
+      else if (key === 'rec') { res = await API.getFarmRecords(); $('recCount').textContent = unwrapList(res).length + ' records'; }
+      else if (key === 'supply') { res = await API.getSupplies(); $('supplyCount').textContent = unwrapList(res).length + ' records'; }
+      else if (key === 'task') { res = await API.getTasks(); $('taskCount').textContent = unwrapList(res).length + ' records'; }
+      st.data = unwrapList(res);
+      st.filtered = [...st.data];
+      st.page = 1;
+      const bodyId = key === 'txn' ? 'txnTableBody' : key === 'rec' ? 'recTableBody' : key + 'TableBody';
+      const pagId = key + 'Pagination';
+      // Clear search/filter fields
+      const si = $(key + 'SearchInput');
+      if (si) si.value = '';
+      const sf = $(key + 'StatusFilter') || $(key + 'TypeFilter');
+      if (sf) sf.value = '';
+      paginate(st, bodyId, pagId);
+    } catch (err) {
+      toast(err.message, 'error');
+      if (err.message.includes('Unauthorized') || err.message.includes('Token')) logout();
+    } finally { hideLoader(); }
+  }
+
+  /* ================================================================
+     ARTIFICIAL INSEMINATION / BREEDING RECORDS
+     ================================================================ */
+  const aiState = { data: [], filtered: [], page: 1, perPage: 10 };
+
+  function fmtDate(v) {
+    if (!v) return '-';
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return '-';
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function switchLivestockTab(tab) {
+    const listView = $('livestockListView');
+    const aiView = $('livestockAiView');
+    const listActions = $('livestockListActions');
+    const aiActions = $('livestockAiActions');
+    if (tab === 'ai') {
+      if (listView) listView.style.display = 'none';
+      if (aiView) aiView.style.display = 'block';
+      if (listActions) listActions.style.display = 'none';
+      if (aiActions) aiActions.style.display = 'flex';
+      loadAIRecords();
+    } else {
+      if (listView) listView.style.display = 'block';
+      if (aiView) aiView.style.display = 'none';
+      if (listActions) listActions.style.display = 'flex';
+      if (aiActions) aiActions.style.display = 'none';
+    }
+    document.querySelectorAll('#livestockTabs .sub-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.ltab === tab);
+    });
+  }
+
+  async function loadAIRecords() {
+    showLoader('Loading AI records...');
+    try {
+      const [listRes, sumRes] = await Promise.all([API.getBreedingRecords({}), API.getBreedingSummary()]);
+      const records = unwrapList(listRes);
+      aiState.data = records;
+      aiState.filtered = [...records];
+      aiState.page = 1;
+      const sum = (sumRes.data && sumRes.data.summary) || {};
+      $('aiCount').textContent = records.length + ' records';
+      const badge = $('aiCountBadge');
+      if (badge) badge.textContent = records.length;
+      renderAiMiniStats(sum);
+      renderAiPagination();
+    } catch (err) {
+      toast(err.message, 'error');
+      if (err.message.includes('Unauthorized') || err.message.includes('Token')) logout();
+    } finally { hideLoader(); }
+  }
+
+  function renderAiMiniStats(sum) {
+    const el = $('aiMiniStats');
+    if (!el) return;
+    const items = [
+      { icon: 'fa-list', label: 'Total Records', value: sum.total || 0 },
+      { icon: 'fa-check-circle', label: 'Confirmed', value: sum.confirmed || 0 },
+      { icon: 'fa-hourglass-half', label: 'Pending', value: sum.pending || 0 },
+      { icon: 'fa-baby-carriage', label: 'Calving Due (60d)', value: sum.calving_due_soon || 0 }
+    ];
+    el.innerHTML = items.map(it =>
+      '<div class="ai-stat-chip"><div class="asc-icon"><i class="fas ' + it.icon + '"></i></div><div><div class="asc-n">' + it.value + '</div><div class="asc-l">' + it.label + '</div></div></div>'
+    ).join('');
+  }
+
+  function filterAIRecords() {
+    const q = ($('aiSearchInput') || {}).value ? $('aiSearchInput').value.toLowerCase() : '';
+    const method = ($('aiMethodFilter') || {}).value || '';
+    const status = ($('aiStatusFilter') || {}).value || '';
+    aiState.filtered = aiState.data.filter(r => {
+      const text = [r.animal_name, r.animal_species, r.animal_breed, r.sire_info, r.breeding_method, r.notes].join(' ').toLowerCase();
+      if (q && !text.includes(q)) return false;
+      if (method && (r.breeding_method || 'AI') !== method) return false;
+      if (status === 'pending' && r.success !== null && r.success !== undefined) return false;
+      if (status === 'yes' && +r.success !== 1) return false;
+      if (status === 'no' && +r.success !== 0) return false;
+      return true;
+    });
+    aiState.page = 1;
+    renderAiPagination();
+  }
+
+  function renderAiPagination() {
+    const total = aiState.filtered.length;
+    const totalPages = Math.ceil(total / aiState.perPage) || 1;
+    if (aiState.page > totalPages) aiState.page = totalPages;
+    const start = (aiState.page - 1) * aiState.perPage;
+    const pageData = aiState.filtered.slice(start, start + aiState.perPage);
+    const body = $('aiTableBody');
+    if (!body) return;
+    if (!pageData.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8"><i class="fas fa-heart-pulse"></i> No artificial insemination records yet. Click "Add AI Record" to log your first service.</td></tr>';
+      const pag = $('aiPagination'); if (pag) pag.innerHTML = '';
+      return;
+    }
+    body.innerHTML = pageData.map(r => {
+      const animal = r.animal_name || ('#' + (r.animal_tag || r.livestock_id));
+      const speciesBreed = (r.animal_species || 'Livestock') + (r.animal_breed ? ' / ' + r.animal_breed : '');
+      const method = r.breeding_method || 'AI';
+      const dueSoon = r.expected_calving_date && !r.actual_calving_date && new Date(r.expected_calving_date) <= new Date(Date.now() + 60 * 86400000) && r.success !== 0;
+      let outBadge, outText;
+      if (r.success === 1) { outBadge = 'success'; outText = 'Confirmed'; }
+      else if (r.success === 0) { outBadge = 'secondary'; outText = 'Not successful'; }
+      else { outBadge = 'warning'; outText = 'Pending'; }
+      return '<tr>' +
+        '<td>' + escHtml(animal) + '</td>' +
+        '<td>' + escHtml(speciesBreed) + '</td>' +
+        '<td>' + fmtDate(r.breeding_date) + '</td>' +
+        '<td>' + escHtml(r.sire_info || '-') + '</td>' +
+        '<td><span class="badge bg-info">' + escHtml(method) + '</span></td>' +
+        '<td>' + fmtDate(r.expected_calving_date) + (dueSoon ? ' <span class="badge bg-danger">Due</span>' : '') + '</td>' +
+        '<td><span class="badge bg-' + outBadge + '">' + outText + '</span></td>' +
+        '<td><div class="action-btns"><button class="btn-edit" onclick="openBreedingModal(' + r.id + ')" title="Edit"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteBreedingRecord(' + r.id + ')" title="Delete"><i class="fas fa-trash"></i></button></div></td>' +
+        '</tr>';
+    }).join('');
+    const pagEl = $('aiPagination');
+    if (!pagEl) return;
+    if (total <= aiState.perPage) { pagEl.innerHTML = ''; return; }
+    let html = '<div class="page-info">' + total + ' records &middot; Page ' + aiState.page + ' of ' + totalPages + '</div><div class="page-btns">';
+    html += '<button ' + (aiState.page <= 1 ? 'disabled' : '') + ' onclick="aiGoPage(' + (aiState.page - 1) + ')"><i class="fas fa-angle-left"></i></button>';
+    const sp = Math.max(1, aiState.page - 2), ep = Math.min(totalPages, aiState.page + 2);
+    for (let i = sp; i <= ep; i++) html += '<button class="' + (i === aiState.page ? 'active' : '') + '" onclick="aiGoPage(' + i + ')">' + i + '</button>';
+    html += '<button ' + (aiState.page >= totalPages ? 'disabled' : '') + ' onclick="aiGoPage(' + (aiState.page + 1) + ')"><i class="fas fa-angle-right"></i></button></div>';
+    pagEl.innerHTML = html;
+  }
+
+  function aiGoPage(page) {
+    const totalPages = Math.ceil(aiState.filtered.length / aiState.perPage) || 1;
+    if (page < 1 || page > totalPages) return;
+    aiState.page = page;
+    renderAiPagination();
+  }
+
+  let breedingEditId = null;
+
+  async function openBreedingModal(recordId) {
+    breedingEditId = recordId || null;
+    const title = $('breedingModalTitle');
+    if (title) title.textContent = recordId ? 'Edit AI Record' : 'Add AI Record';
+    const form = $('breedingForm');
+    if (form) form.reset();
+    $('brMethod').value = 'AI';
+    $('brSuccess').value = '';
+    // Populate animal select
+    const sel = $('brLivestock');
+    sel.innerHTML = '<option value="">Select an animal...</option>';
+    try {
+      const res = await API.getLivestock({});
+      const list = unwrapList(res);
+      if (!list.length) {
+        toast('Add livestock first before logging an AI record', 'error');
+      }
+      const females = list.filter(l => l.gender !== 'male');
+      (females.length ? females : list).forEach(l => {
+        const label = (l.name ? l.name + ' — ' : '') + (l.species || 'Livestock') + (l.breed ? ' (' + l.breed + ')' : '') + (l.tag_number ? ' [' + l.tag_number + ']' : '');
+        const opt = document.createElement('option');
+        opt.value = l.id;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    } catch (err) { toast(err.message, 'error'); }
+    if (recordId) {
+      try {
+        const rec = aiState.data.find(r => r.id === recordId);
+        if (rec) {
+          sel.value = rec.livestock_id;
+          $('brDate').value = fmtDate(rec.breeding_date) === '-' ? '' : fmtDate(rec.breeding_date);
+          $('brSire').value = rec.sire_info || '';
+          $('brMethod').value = rec.breeding_method || 'AI';
+          $('brExpectedCalving').value = fmtDate(rec.expected_calving_date) === '-' ? '' : fmtDate(rec.expected_calving_date);
+          $('brActualCalving').value = fmtDate(rec.actual_calving_date) === '-' ? '' : fmtDate(rec.actual_calving_date);
+          $('brOffspring').value = rec.offspring_count || '';
+          $('brSuccess').value = rec.success === 1 ? '1' : rec.success === 0 ? '0' : '';
+          $('brNotes').value = rec.notes || '';
+        }
+      } catch (err) { toast(err.message, 'error'); }
+    }
+    openModal('breedingModal');
+  }
+
+  async function saveBreedingRecord(e) {
+    e.preventDefault();
+    const btn = $('brSubmit');
+    const livestockId = $('brLivestock').value;
+    if (!livestockId) { toast('Please select an animal', 'error'); return; }
+    if (!$('brDate').value) { toast('Please enter the service date', 'error'); return; }
+    const payload = {
+      livestock_id: +livestockId,
+      breeding_date: $('brDate').value,
+      breeding_method: $('brMethod').value || 'AI',
+      sire_info: $('brSire').value,
+      expected_calving_date: $('brExpectedCalving').value || null,
+      actual_calving_date: $('brActualCalving').value || null,
+      offspring_count: $('brOffspring').value ? +$('brOffspring').value : null,
+      success: $('brSuccess').value === '' ? null : ($('brSuccess').value === '1'),
+      notes: $('brNotes').value
+    };
+    setBtnLoading(btn, true);
+    try {
+      if (breedingEditId) {
+        await API.updateBreedingRecord(breedingEditId, payload);
+        toast('AI record updated!');
+      } else {
+        await API.createBreedingRecord(livestockId, payload);
+        toast('AI record saved!');
+      }
+      closeModal('breedingModal');
+      await loadAIRecords();
+      const ls = tableState.livestock;
+      if (ls && ls.data.length) { /* keep livestock cache intact */ }
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally { setBtnLoading(btn, false); }
+  }
+
+  function deleteBreedingRecord(id) {
+    showConfirm('Delete AI record?', 'This artificial insemination record will be permanently removed.', true).then(async (ok) => {
+      if (!ok) return;
+      showLoader('Deleting...');
+      try {
+        await API.deleteBreedingRecord(id);
+        toast('AI record deleted');
+        await loadAIRecords();
+      } catch (err) { toast(err.message, 'error'); }
+      finally { hideLoader(); }
+    });
+  }
+
+  /* ================================================================
+     DASHBOARD
+     ================================================================ */
+  async function loadDashboard() {
+    showLoader('Loading dashboard...');
+    try {
+      const [profile, crops, livestock, transactions, records] = await Promise.all([
+        API.getProfile(), API.getCrops({}), API.getLivestock({}), API.getTransactions({}), API.getFarmRecords({})
+      ]);
+      const u = profile.data.user;
+      const avatarUrl = u.avatar_url ? API_URL + u.avatar_url : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name) + '&background=49D43F&color=fff&bold=true';
+      $('userName').textContent = u.full_name;
+      $('userAvatar').src = avatarUrl;
+      $('dashWelcome').textContent = 'Welcome back, ' + u.full_name.split(' ')[0] + '!';
+      const cropsList = unwrapList(crops);
+      const lsList = unwrapList(livestock);
+      const txnList = unwrapList(transactions);
+      const recList = unwrapList(records);
+      // Empty-state CTAs
+      const hasNoData = !cropsList.length && !lsList.length && !txnList.length && !recList.length;
+      if (hasNoData) {
+        $('dashWelcome').textContent = 'Welcome to KIBOE FarmSync, ' + u.full_name.split(' ')[0] + '! Get started by adding your first crop or livestock.';
+        const feed = $('activityFeed');
+        feed.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--gray);"><i class="fas fa-seedling" style="font-size:2rem;margin-bottom:12px;display:block;color:var(--primary-green);"></i><p style="margin-bottom:12px;">Your farm is empty. Let\'s get started!</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"><button class="btn-glow btn-sm-glow" onclick="openModal(\'cropModal\')"><i class="fas fa-seedling"></i> <span>Add First Crop</span></button><button class="btn-glow btn-sm-glow" onclick="openModal(\'livestockModal\')"><i class="fas fa-horse-head"></i> <span>Add First Livestock</span></button></div></div>';
+        const tl = $('taskList'); tl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:0.85rem;">Add crops and tasks to see them here</div>';
+      }
+      $('statCrops').textContent = cropsList.length;
+      $('statLivestock').textContent = lsList.length;
+      $('statRecords').textContent = recList.length;
+      const income = txnList.filter(t => t.type === 'income').reduce((s, t) => s + +t.amount, 0);
+      const expense = txnList.filter(t => t.type === 'expense').reduce((s, t) => s + +t.amount, 0);
+      $('statProfit').textContent = 'KSh ' + (income - expense).toLocaleString();
+      // Notification count
+      try { const n = await API.getNotifications(); $('notifCount').textContent = unwrapList(n).filter(x => !x.is_read).length; } catch(e) {}
+
+      /* ---- Crop Chart ---- */
+      const cropLabels = cropsList.map(c => c.name);
+      const cropData = cropsList.map(c => +c.area || 1);
+      if (window.dashCropChart) { window.dashCropChart.destroy(); window.dashCropChart = null; }
+      const cropCtx = document.getElementById('dashCropChart');
+      if (cropCtx && cropLabels.length) {
+        const colors = ['#7BC300','#49D43F','#36A2EB','#FFCE56','#FF6384','#9966FF','#FF9F40','#4BC0C0'];
+        window.dashCropChart = new Chart(cropCtx, {
+          type: 'doughnut',
+          data: { labels: cropLabels, datasets: [{ data: cropData, backgroundColor: colors.slice(0, cropLabels.length), borderWidth: 0 }] },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#A8A8A8', font: { size: 11 }, padding: 14, usePointStyle: true } } } }
+        });
+      }
+
+      /* ---- Profit Chart ---- */
+      if (window.dashProfitChart) { window.dashProfitChart.destroy(); window.dashProfitChart = null; }
+      const profitCtx = document.getElementById('dashProfitChart');
+      if (profitCtx) {
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const rev = months.map((_, i) => txnList.filter(t => t.type === 'income' && new Date(t.transaction_date).getMonth() === i).reduce((s, t) => s + +t.amount, 0));
+        const exp = months.map((_, i) => txnList.filter(t => t.type === 'expense' && new Date(t.transaction_date).getMonth() === i).reduce((s, t) => s + +t.amount, 0));
+        const gradient = profitCtx.getContext('2d').createLinearGradient(0, 0, 0, 280);
+        gradient.addColorStop(0, 'rgba(123, 195, 0, 0.3)'); gradient.addColorStop(1, 'rgba(123, 195, 0, 0)');
+        window.dashProfitChart = new Chart(profitCtx, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [
+              { label: 'Revenue', data: rev, borderColor: '#7BC300', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#7BC300', pointBorderColor: '#1A1D24', pointBorderWidth: 2, pointRadius: 4 },
+              { label: 'Expenses', data: exp, borderColor: '#FF6384', backgroundColor: 'rgba(255, 99, 132, 0.1)', borderWidth: 2, fill: true, tension: 0.4, borderDash: [5, 5], pointRadius: 0 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#A8A8A8', font: { size: 11 }, usePointStyle: true } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#A8A8A8', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#A8A8A8', font: { size: 10 }, callback: v => 'KSh ' + v.toLocaleString() } } } }
+        });
+      }
+
+      /* ---- Activity Feed ---- */
+      const feed = $('activityFeed'); feed.innerHTML = '';
+      const activities = [...txnList, ...recList].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
+      if (!activities.length) { feed.innerHTML = '<div class="activity-item"><div class="activity-dot bg-green"></div><div class="activity-info"><p>No activity yet. Start by adding crops or transactions!</p></div></div>'; }
+      else {
+        activities.forEach(a => {
+          const title = a.title || a.description || (a.type === 'income' ? 'Income: KSh ' + (+a.amount).toLocaleString() : a.type === 'expense' ? 'Expense: KSh ' + (+a.amount).toLocaleString() : a.name || a.species || 'Activity');
+          const dotColor = a.type === 'expense' ? 'bg-red' : a.type === 'income' ? 'bg-green' : a.record_type ? 'bg-blue' : 'bg-yellow';
+          feed.innerHTML += '<div class="activity-item"><div class="activity-dot ' + dotColor + '"></div><div class="activity-info"><p>' + escHtml(title.substring(0,60)) + '</p><span>' + timeAgo(a.created_at) + '</span></div></div>';
+        });
+      }
+
+      /* ---- Real Weather ---- */
+      loadWeather();
+
+      /* ---- Upcoming Tasks ---- */
+      const tl = $('taskList'); tl.innerHTML = '';
+      try {
+        const ut = await API.getUpcomingTasks();
+        const utList = unwrapList(ut);
+        if (!utList.length) { tl.innerHTML = '<div class="task-item" style="border-color:var(--gray);"><p>No upcoming tasks</p></div>'; }
+        else {
+          utList.forEach(t => {
+            const d = t.due_date ? new Date(t.due_date) : null;
+            const diff = d ? Math.ceil((d - Date.now()) / (86400000)) : null;
+            const urgent = t.priority === 'urgent' || (diff !== null && diff <= 1);
+            tl.innerHTML += '<div class="task-item" style="border-left-color:' + (urgent ? '#FF6384' : 'var(--primary-green)') + ';"><p>' + escHtml(t.title) + '</p><span>' + (diff !== null ? (diff <= 0 ? 'Overdue!' : diff + 'd') : '-') + '</span></div>';
+          });
+        }
+      } catch(e) { tl.innerHTML = '<div class="task-item"><p>Could not load tasks</p></div>'; }
+      // Notification bell pulse update
+      setBadgePulse();
+    } catch (err) {
+      toast(err.message, 'error');
+      if (err.message && (err.message.includes('Unauthorized') || err.message.includes('Token'))) logout();
+    } finally { hideLoader(); }
+  }
+
+  function setBadgePulse() {
+    const b = $('notifCount');
+    if (b && +b.textContent > 0) b.style.animation = 'pulse 2s infinite';
+  }
+
+  /* ================================================================
+     CRUD OPERATIONS
+     ================================================================ */
+  function editCrop(id) {
+    const item = tableState.crops.data.find(d => d.id === id);
+    if (!item) return;
+    editContext = { type: 'crop', id: id };
+    $('editCropName').value = item.name;
+    $('editCropVariety').value = item.variety || '';
+    $('editCropArea').value = item.area;
+    $('editCropDate').value = item.planting_date;
+    $('editCropHarvest').value = item.expected_harvest_date || '';
+    openModal('editCropModal');
+  }
+
+  function editLivestock(id) {
+    const item = tableState.livestock.data.find(d => d.id === id);
+    if (!item) return;
+    editContext = { type: 'livestock', id: id };
+    $('editLsSpecies').value = item.species;
+    $('editLsBreed').value = item.breed || '';
+    $('editLsName').value = item.name || '';
+    $('editLsGender').value = item.gender;
+    $('editLsBirth').value = item.birth_date || '';
+    openModal('editLivestockModal');
+  }
+
+  function editTransaction(id) {
+    const item = tableState.txn.data.find(d => d.id === id);
+    if (!item) return;
+    editContext = { type: 'txn', id: id };
+    $('editTxnType').value = item.type;
+    $('editTxnCategory').value = item.category;
+    $('editTxnAmount').value = item.amount;
+    $('editTxnDate').value = item.transaction_date;
+    $('editTxnDesc').value = item.description || '';
+    openModal('editTransactionModal');
+  }
+
+  function editSupply(id) {
+    const item = tableState.supply.data.find(d => d.id === id);
+    if (!item) return;
+    editContext = { type: 'supply', id: id };
+    $('editSupName').value = item.name; $('editSupCategory').value = item.category||'';
+    $('editSupQty').value = item.quantity; $('editSupUnit').value = item.unit||'';
+    $('editSupCost').value = item.unit_cost; $('editSupSupplier').value = item.supplier||'';
+    $('editSupNotes').value = item.notes||'';
+    openModal('editSupplyModal');
+  }
+
+  function editTask(id) {
+    const item = tableState.task.data.find(d => d.id === id);
+    if (!item) return;
+    editContext = { type: 'task', id: id };
+    $('editTaskTitle').value = item.title; $('editTaskDesc').value = item.description||'';
+    $('editTaskPriority').value = item.priority||'medium'; $('editTaskDue').value = item.due_date||'';
+    openModal('editTaskModal');
+  }
+
+  async function completeTask(id) {
+    try {
+      await API.completeTask(id);
+      toast('Task completed!');
+      loadTablePage('task');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function confirmDelete(type, id) {
+    const typeNames = { crop: 'crop', livestock: 'animal', transaction: 'transaction', record: 'record', supply: 'supply', task: 'task' };
+    const ok = await showConfirm('Delete ' + typeNames[type] + '?', 'This action cannot be undone.', true);
+    if (!ok) return;
+    showLoader('Deleting...');
+    try {
+      if (type === 'crop') await API.deleteCrop(id);
+      else if (type === 'livestock') await API.deleteLivestock(id);
+      else if (type === 'transaction') await API.deleteTransaction(id);
+      else if (type === 'record') await API.deleteFarmRecord(id);
+      else if (type === 'supply') await API.deleteSupply(id);
+      else if (type === 'task') await API.deleteTask(id);
+      toast(typeNames[type] + ' deleted successfully');
+      // Reload current page
+      const active = document.querySelector('.page-section.active');
+      if (active) {
+        const pageId = active.id.replace('page-', '');
+        if (pageId === 'dashboard') loadDashboard();
+        else loadTablePage(pageId);
+      }
+    } catch (err) { toast(err.message, 'error'); }
+    finally { hideLoader(); }
+  }
+
+  /* ================================================================
+     VACCINATIONS
+     ================================================================ */
+  async function showVaccinations(livestockId) {
+    const item = tableState.livestock.data.find(d => d.id === livestockId);
+    $('vtLivestockName').textContent = (item ? (item.name || item.species) + ' #' + livestockId : '#' + livestockId);
+    showLoader('Loading vaccinations...');
+    try {
+      const res = await API.getVaccinations(livestockId);
+      const list = res.data || [];
+      const body = $('vaccineTableBody'); body.innerHTML = '';
+      if (!list.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="3">No vaccinations recorded</td></tr>';
+      } else {
+        list.forEach(v => {
+          body.innerHTML += '<tr><td>' + escHtml(v.vaccine_name) + '</td><td>' + (v.date_administered||'') + '</td><td>' + (v.next_due_date||'-') + '</td></tr>';
+        });
+      }
+      $('vaccineTableModal').style.display = 'flex';
+    } catch (err) { toast(err.message, 'error'); }
+    finally { hideLoader(); }
+  }
+
+  function closeVaccineTable() { $('vaccineTableModal').style.display = 'none'; }
+  document.querySelector('.vaccine-table-modal').addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+
+  /* ================================================================
+     REPORTS
+     ================================================================ */
+  async function loadReportsPage() {
+    showLoader('Loading reports...');
+    try {
+      const res = await API.getReportSummary();
+      const d = res.data || {};
+      $('rptCrops').textContent = d.total_crops || 0;
+      $('rptLivestock').textContent = d.livestock_count || 0;
+      $('rptIncome').textContent = 'KSh ' + (+(d.total_income||0)).toLocaleString();
+      $('rptExpense').textContent = 'KSh ' + (+(d.total_expenses||0)).toLocaleString();
+
+      // Bar chart - income vs expense
+      if (window.rptBarChart) { window.rptBarChart.destroy(); window.rptBarChart = null; }
+      const barCtx = document.getElementById('rptBarChart');
+      if (barCtx) {
+        window.rptBarChart = new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Income', 'Expenses', 'Net Profit'],
+            datasets: [{
+              data: [d.total_income||0, d.total_expenses||0, d.net_profit||0],
+              backgroundColor: ['rgba(123,195,0,0.7)', 'rgba(255,99,132,0.7)', 'rgba(255,206,86,0.7)'],
+              borderColor: ['#7BC300', '#FF6384', '#FFCE56'],
+              borderWidth: 2,
+              borderRadius: 6
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#A8A8A8', font: { size: 11 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#A8A8A8', font: { size: 10 }, callback: v => 'KSh ' + v.toLocaleString() } } } }
+        });
+      }
+
+      // Pie chart - expense breakdown
+      if (window.rptPieChart) { window.rptPieChart.destroy(); window.rptPieChart = null; }
+      const pieCtx = document.getElementById('rptPieChart');
+      const cropBreakdown = d.crop_breakdown || [];
+      if (pieCtx) {
+        window.rptPieChart = new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels: cropBreakdown.length ? cropBreakdown.map(c => c.name || c.species) : ['No data'],
+            datasets: [{
+              data: cropBreakdown.length ? cropBreakdown.map(c => +(c.count||c.total||1)) : [1],
+              backgroundColor: ['#7BC300','#49D43F','#36A2EB','#FFCE56','#FF6384','#9966FF','#FF9F40'],
+              borderWidth: 0
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#A8A8A8', font: { size: 11 }, padding: 12, usePointStyle: true } } } }
+        });
+      }
+    } catch (err) { toast(err.message, 'error'); }
+    finally { hideLoader(); }
+  }
+
+  /* ---- CSV Export ---- */
+  function exportCSV() {
+    // Collect all visible data from active page
+    const active = document.querySelector('.page-section.active');
+    if (!active) { toast('No page active', 'warning'); return; }
+    const pageId = active.id.replace('page-', '');
+    let rows = [];
+    let headers = [];
+
+    if (pageId === 'crops') {
+      headers = ['Name','Variety','Area(acres)','Planted','Harvest','Status'];
+      rows = tableState.crops.filtered.map(c => [c.name, c.variety||'', c.area, c.planting_date, c.expected_harvest_date||'', c.status||'']);
+    } else if (pageId === 'livestock') {
+      headers = ['Name','Species','Breed','Gender','Birth Date','Status'];
+      rows = tableState.livestock.filtered.map(l => [l.name||'', l.species, l.breed||'', l.gender||'', l.birth_date||'', l.status||'']);
+    } else if (pageId === 'transactions') {
+      headers = ['Type','Category','Amount','Date','Description'];
+      rows = tableState.txn.filtered.map(t => [t.type, t.category, t.amount, t.transaction_date, t.description||'']);
+    } else if (pageId === 'records') {
+      headers = ['Title','Type','Date','Description'];
+      rows = tableState.rec.filtered.map(r => [r.title, r.record_type||'', r.record_date, r.description||'']);
+    } else { toast('Export not available for this page', 'warning'); return; }
+
+    if (!rows.length) { toast('No data to export', 'warning'); return; }
+    let csv = headers.join(',') + '\n';
+    csv += rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = pageId + '_export_' + new Date().toISOString().slice(0,10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast('CSV exported successfully');
+  }
+
+  /* ================================================================
+     SETTINGS
+     ================================================================ */
+  async function loadSettingsPage() {
+    try {
+      const p = await API.getProfile();
+      const u = p.data.user;
+      $('sName').value = u.full_name || '';
+      $('sPhone').value = u.phone || '';
+      $('sLocation').value = u.farm_location || '';
+      $('sFarmSize').value = u.farm_size || '';
+      const sAvatar = $('settingsAvatar');
+      if (u.avatar_url) { sAvatar.src = API_URL + u.avatar_url; }
+      else { sAvatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name) + '&background=49D43F&color=fff&bold=true'; }
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  /* ---- Vaccination modal - populate livestock dropdown ---- */
+  function openVaccineModal() {
+    const sel = $('vaccineLivestock');
+    sel.innerHTML = '<option value="">-- Select Livestock --</option>';
+    API.getLivestock({}).then(res => {
+      (res.data || []).forEach(l => {
+        const o = document.createElement('option');
+        o.value = l.id;
+        o.textContent = (l.name || l.species || 'Unknown') + ' #' + l.id;
+        sel.appendChild(o);
+      });
+    }).catch(err => toast(err.message, 'error'));
+    openModal('vaccineModal');
+  }
+
+  /* ================================================================
+     CALENDAR
+     ================================================================ */
+  let calDate = new Date();
+  let calEvents = [];
+
+  async function loadCalendar() {
+    showLoader('Loading calendar...');
+    try {
+      const [crops, ls, tasks] = await Promise.all([
+        API.getCrops({}), API.getLivestock({}), API.getUpcomingTasks()
+      ]);
+      calEvents = [];
+      (crops.data || []).forEach(c => {
+        if (c.planting_date) calEvents.push({ date: c.planting_date, title: 'Planted: ' + c.name, type: 'planting' });
+        if (c.expected_harvest_date) calEvents.push({ date: c.expected_harvest_date, title: 'Harvest: ' + c.name, type: 'harvest' });
+      });
+      (ls.data || []).forEach(async l => {
+        try {
+          const v = await API.getVaccinations(l.id);
+          (v.data || []).forEach(vv => {
+            if (vv.next_due_date) calEvents.push({ date: vv.next_due_date, title: 'Vaccine due: ' + (l.name||l.species), type: 'vaccine' });
+          });
+        } catch(e) {}
+      });
+      (tasks.data || []).forEach(t => {
+        if (t.due_date) calEvents.push({ date: t.due_date, title: t.title, type: 'task' });
+      });
+      renderCalendar();
+    } catch (err) { toast(err.message, 'error'); }
+    finally { hideLoader(); }
+  }
+
+  function renderCalendar() {
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+    $('calMonthYear').textContent = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    let html = '<tr>';
+    for (let i = 0; i < firstDay; i++) html += '<td></td>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      const dayEvents = calEvents.filter(e => e.date === dateStr);
+      html += '<td class="cal-day' + (isToday ? ' cal-today' : '') + '" onclick="showDayEvents(\'' + dateStr + '\')" style="cursor:pointer;padding:8px;border:1px solid var(--dark-border);vertical-align:top;' + (isToday ? 'background:rgba(123,195,0,0.1);' : '') + '">';
+      html += '<div style="font-weight:' + (isToday?'700':'400') + ';margin-bottom:4px;">' + d + '</div>';
+      if (dayEvents.length) {
+        dayEvents.slice(0, 3).forEach(e => {
+          const dotColor = e.type === 'planting' ? '#7BC300' : e.type === 'harvest' ? '#FFCE56' : e.type === 'vaccine' ? '#36A2EB' : '#9966FF';
+          html += '<div style="font-size:0.65rem;color:' + dotColor + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escHtml(e.title) + '">&#9679; ' + escHtml(e.title.substring(0,20)) + '</div>';
+        });
+        if (dayEvents.length > 3) html += '<div style="font-size:0.6rem;color:var(--gray);">+' + (dayEvents.length-3) + ' more</div>';
+      }
+      html += '</td>';
+      if ((firstDay + d) % 7 === 0 || d === daysInMonth) { html += '</tr>'; if (d < daysInMonth) html += '<tr>'; }
+    }
+    for (let i = (firstDay + daysInMonth) % 7; i > 0 && i < 7; i++) html += '<td></td>';
+    $('calBody').innerHTML = html;
+  }
+
+  function calNav(dir) {
+    calDate.setMonth(calDate.getMonth() + dir);
+    renderCalendar();
+  }
+
+  function showDayEvents(dateStr) {
+    $('calSelectedDate').textContent = dateStr;
+    const dayEvents = calEvents.filter(e => e.date === dateStr);
+    const el = $('calEvents');
+    if (!dayEvents.length) { el.innerHTML = '<div style="color:var(--gray);">No events on this date</div>'; return; }
+    el.innerHTML = dayEvents.map(e => '<div style="padding:8px 0;border-bottom:1px solid var(--dark-border);display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:' + (e.type==='planting'?'#7BC300':e.type==='harvest'?'#FFCE56':e.type==='vaccine'?'#36A2EB':'#9966FF') + ';display:inline-block;"></span>' + escHtml(e.title) + '</div>').join('');
+  }
+
+  /* ================================================================
+     NOTIFICATION DROPDOWN
+     ================================================================ */
+  function toggleNotifDropdown() {
+    const existing = document.getElementById('notifDropdown');
+    if (existing) { existing.remove(); return; }
+    const d = document.createElement('div');
+    d.id = 'notifDropdown';
+    d.style.cssText = 'position:fixed;top:60px;right:80px;width:360px;background:var(--dark-card);border:1px solid var(--dark-border);border-radius:12px;z-index:9999;box-shadow:0 10px 40px rgba(0,0,0,0.5);max-height:400px;overflow-y:auto;';
+    d.innerHTML = '<div style="padding:14px 16px;border-bottom:1px solid var(--dark-border);display:flex;justify-content:space-between;align-items:center;"><strong>Notifications</strong><button onclick="this.closest(\'#notifDropdown\').remove()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:1.2rem;">&times;</button></div><div id="notifList" style="padding:8px;"><div style="text-align:center;padding:20px;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>';
+    document.body.appendChild(d);
+    API.getNotifications().then(res => {
+      const list = res.data ? (res.data.notifications || res.data) : [];
+      const nl = document.getElementById('notifList');
+      if (!nl) return;
+      if (!list.length) { nl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);"><i class="fas fa-bell-slash" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>No notifications</div>'; return; }
+      nl.innerHTML = list.map(n => '<div style="padding:10px 12px;border-radius:8px;margin-bottom:4px;' + (!n.is_read ? 'background:rgba(123,195,0,0.05);border-left:3px solid var(--primary-green);' : '') + 'cursor:pointer;" onclick="markNotifRead(' + n.id + ')"><div style="font-size:0.85rem;font-weight:' + (!n.is_read?'600':'400') + ';">' + escHtml(n.title||'') + '</div><div style="font-size:0.75rem;color:var(--gray);">' + escHtml(n.message||'') + '</div><div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">' + timeAgo(n.created_at) + '</div></div>').join('');
+    }).catch(() => { const nl = document.getElementById('notifList'); if (nl) nl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);">Failed to load</div>'; });
+  }
+
+  async function markNotifRead(id) {
+    try {
+      await fetch(API_URL + '/api/notifications/' + id + '/read', { method: 'PUT', headers: { 'Authorization': 'Bearer ' + API.getToken() } });
+      const badge = $('notifCount');
+      const c = parseInt(badge.textContent) || 0;
+      if (c > 0) badge.textContent = c - 1;
+    } catch(e) {}
+  }
+
+  // Close notification dropdown on outside click
+  document.addEventListener('click', function(e) {
+    const dd = document.getElementById('notifDropdown');
+    if (dd && !dd.contains(e.target) && e.target.id !== 'notifBell' && !e.target.closest('#notifBell')) dd.remove();
+  });
+
+  /* ================================================================
+     REAL WEATHER
+     ================================================================ */
+  async function loadWeather() {
+    const wf = $('weatherForecast');
+    if (!wf) return;
+    wf.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i> Loading weather...</div>';
+    try {
+      // Try free OpenWeatherMap API (no key = demo mode)
+      const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-1.2864&longitude=36.8172&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Africa/Nairobi&forecast_days=7');
+      const d = await r.json();
+      if (d.daily) {
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const codes = d.daily.weathercode || [];
+        const icons = ['fa-sun','fa-cloud-sun','fa-cloud-rain','fa-snowflake','fa-smog'];
+        const getIcon = code => code <= 2 ? icons[0] : code <= 4 ? icons[1] : code <= 60 ? icons[2] : code <= 70 ? icons[3] : icons[4];
+        wf.innerHTML = d.daily.time.map((date, i) => {
+          const dayName = days[new Date(date).getDay()];
+          const icon = getIcon(codes[i] || 0);
+          return '<div class="forecast-item"><span>' + dayName + '</span><i class="fas ' + icon + ' ' + (icon===icons[0]?'fi-day':icon===icons[2]?'fi-rain':'fi-cloud') + '"></i><span>' + Math.round(d.daily.temperature_2m_max[i]) + '°/' + Math.round(d.daily.temperature_2m_min[i]) + '°</span></div>';
+        }).join('');
+      } else { throw new Error('No data'); }
+    } catch(e) {
+      // Fallback to mock data
+      wf.innerHTML = '';
+      ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach((d, i) => {
+        wf.innerHTML += '<div class="forecast-item"><span>' + d + '</span><i class="fas ' + ['fa-sun','fa-cloud-sun','fa-cloud-rain','fa-sun','fa-cloud','fa-sun','fa-cloud-sun'][i] + '"></i><span>' + ['28°','26°','22°','30°','25°','27°','24°'][i] + '</span></div>';
+      });
+    }
+  }
+
+  /* ================================================================
+     FORM SUBMISSIONS
+     ================================================================ */
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof API === 'undefined' || !API.isAuthenticated()) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const dateEl = $('topbarDate');
+    if (dateEl) {
+      dateEl.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    AOS.init({ disable: 'mobile', once: true });
+
+    /* ---- Notification bell click ---- */
+    $('notifBell').addEventListener('click', function(e) { e.stopPropagation(); toggleNotifDropdown(); });
+
+    /* ---- Artificial Insemination form ---- */
+    const breedingForm = $('breedingForm');
+    if (breedingForm) breedingForm.addEventListener('submit', saveBreedingRecord);
+
+    /* ---- Add Crop ---- */
+    $('cropForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('cropSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createCrop({
+          name: $('cropName').value, variety: $('cropVariety').value,
+          area: $('cropArea').value, planting_date: $('cropDate').value,
+          expected_harvest_date: $('cropHarvest').value
+        });
+        toast('Crop added successfully!');
+        closeModal('cropModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('crops');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Edit Crop ---- */
+    $('editCropForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('editCropSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.updateCrop(editContext.id, {
+          name: $('editCropName').value, variety: $('editCropVariety').value,
+          area: $('editCropArea').value, planting_date: $('editCropDate').value,
+          expected_harvest_date: $('editCropHarvest').value
+        });
+        toast('Crop updated!');
+        closeModal('editCropModal');
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('crops');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Livestock ---- */
+    $('livestockForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('lsSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createLivestock({
+          species: $('lsSpecies').value, breed: $('lsBreed').value,
+          name: $('lsName').value, gender: $('lsGender').value,
+          birth_date: $('lsBirth').value
+        });
+        toast('Livestock added!');
+        closeModal('livestockModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('livestock');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Edit Livestock ---- */
+    $('editLivestockForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('editLsSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.updateLivestock(editContext.id, {
+          species: $('editLsSpecies').value, breed: $('editLsBreed').value,
+          name: $('editLsName').value, gender: $('editLsGender').value,
+          birth_date: $('editLsBirth').value
+        });
+        toast('Livestock updated!');
+        closeModal('editLivestockModal');
+        loadTablePage('livestock');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Transaction ---- */
+    $('transactionForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('txnSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createTransaction({
+          type: $('txnType').value, category: $('txnCategory').value,
+          amount: $('txnAmount').value, transaction_date: $('txnDate').value,
+          description: $('txnDesc').value
+        });
+        toast('Transaction added!');
+        closeModal('transactionModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('txn');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Edit Transaction ---- */
+    $('editTransactionForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('editTxnSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.updateTransaction(editContext.id, {
+          type: $('editTxnType').value, category: $('editTxnCategory').value,
+          amount: $('editTxnAmount').value, transaction_date: $('editTxnDate').value,
+          description: $('editTxnDesc').value
+        });
+        toast('Transaction updated!');
+        closeModal('editTransactionModal');
+        loadTablePage('txn');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Farm Record ---- */
+    $('recordForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('recSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createFarmRecord({
+          title: $('recTitle').value, record_type: $('recType').value,
+          record_date: $('recDate').value, description: $('recDesc').value
+        });
+        toast('Farm record added!');
+        closeModal('recordModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('rec');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Supply ---- */
+    $('supplyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('supSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createSupply({
+          name: $('supName').value, category: $('supCategory').value,
+          quantity: $('supQty').value, unit: $('supUnit').value,
+          unit_cost: $('supCost').value, supplier: $('supSupplier').value,
+          notes: $('supNotes').value
+        });
+        toast('Supply added!');
+        closeModal('supplyModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('supply');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Edit Supply ---- */
+    $('editSupplyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('editSupSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.updateSupply(editContext.id, {
+          name: $('editSupName').value, category: $('editSupCategory').value,
+          quantity: $('editSupQty').value, unit: $('editSupUnit').value,
+          unit_cost: $('editSupCost').value, supplier: $('editSupSupplier').value,
+          notes: $('editSupNotes').value
+        });
+        toast('Supply updated!');
+        closeModal('editSupplyModal');
+        loadTablePage('supply');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Task ---- */
+    $('taskForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('taskSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createTask({
+          title: $('taskTitle').value, description: $('taskDesc').value,
+          priority: $('taskPriority').value, due_date: $('taskDue').value
+        });
+        toast('Task added!');
+        closeModal('taskModal'); this.reset();
+        const active = document.querySelector('.page-section.active');
+        if (active && active.id === 'page-dashboard') loadDashboard();
+        else loadTablePage('task');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Edit Task ---- */
+    $('editTaskForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = $('editTaskSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.updateTask(editContext.id, {
+          title: $('editTaskTitle').value, description: $('editTaskDesc').value,
+          priority: $('editTaskPriority').value, due_date: $('editTaskDue').value
+        });
+        toast('Task updated!');
+        closeModal('editTaskModal');
+        loadTablePage('task');
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Add Vaccination ---- */
+    $('vaccineForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const lid = $('vaccineLivestock').value;
+      if (!lid) { toast('Please select livestock', 'warning'); return; }
+      const btn = $('vaccineSubmit'); setBtnLoading(btn, true);
+      try {
+        await API.createVaccination(lid, {
+          vaccine_name: $('vaccineName').value,
+          date_administered: $('vaccineDate').value,
+          next_due_date: $('vaccineDue').value
+        });
+        toast('Vaccination recorded!');
+        closeModal('vaccineModal'); this.reset();
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Profile Settings ---- */
+    $('profileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('button[type="submit"]'); setBtnLoading(btn, true);
+      try {
+        await API.updateProfile({
+          full_name: $('sName').value, phone: $('sPhone').value,
+          farm_location: $('sLocation').value, farm_size: $('sFarmSize').value
+        });
+        toast('Profile updated!');
+        $('userName').textContent = $('sName').value;
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Password Change ---- */
+    $('passwordForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if ($('sNewPw').value !== $('sConfirmPw').value) { toast('Passwords do not match', 'error'); return; }
+      const btn = this.querySelector('button[type="submit"]'); setBtnLoading(btn, true);
+      try {
+        await API.changePassword({
+          current_password: $('sCurrPw').value, new_password: $('sNewPw').value
+        });
+        toast('Password updated successfully!');
+        this.reset();
+      } catch (err) { toast(err.message, 'error'); }
+      finally { setBtnLoading(btn, false); }
+    });
+
+    /* ---- Profile Picture Upload ---- */
+    $('avatarInput').addEventListener('change', async function(e) {
+      const file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { toast('File too large (max 5MB)', 'error'); this.value = ''; return; }
+      const status = $('avatarStatus');
+      status.style.display = 'block'; status.textContent = 'Uploading...'; status.style.color = 'var(--gray)';
+      try {
+        const res = await API.uploadProfilePicture(file);
+        const url = API_URL + res.data.avatar_url;
+        $('userAvatar').src = url;
+        $('settingsAvatar').src = url;
+        status.textContent = 'Picture updated!'; status.style.color = 'var(--primary-green)';
+        toast('Profile picture updated');
+      } catch (err) {
+        status.textContent = err.message; status.style.color = '#ff4757';
+        toast(err.message, 'error');
+      }
+      this.value = '';
+    });
+
+    /* ---- Click avatar to upload ---- */
+    $('avatarBtn').addEventListener('click', function() {
+      $('avatarInput').click();
+    });
+
+    /* ---- Load initial page ---- */
+    showPage('dashboard');
+  });
+  </script>
+  <script src="assets/js/modules.js"></script>
+</body>
+</html>

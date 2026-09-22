@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIBOE FarmSync - Login</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C2W5HDQJ5H"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C2W5HDQJ5H');</script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/auth.css" rel="stylesheet">
+</head>
+<body class="auth-page">
+  <div class="auth-wrapper">
+    <a href="index.html" class="auth-back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    <div class="auth-card">
+      <div class="auth-header">
+        <a href="index.html" class="auth-logo">
+          <img src="assets/images/logo.png" alt="KIBOE FarmSync" height="42">
+        </a>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your farm management dashboard</p>
+      </div>
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+            <input type="email" class="form-control" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+            <input type="password" class="form-control" placeholder="Enter your password" required>
+          </div>
+        </div>
+        <div class="form-options">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMe">
+            <label class="form-check-label" for="rememberMe">Remember me</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="event.preventDefault();showForgotPassword()">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn-glow auth-btn w-100"><span>Sign In</span></button>
+        <div id="loginError" style="font-size:0.85rem;margin-top:14px;text-align:center;display:none;padding:10px;border-radius:8px;background:#FDECEC;color:#E0454F;"></div>
+      </form>
+      <p class="auth-footer-text">Don't have an account? <a href="register.html">Sign Up</a></p>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal auth-modal" id="forgotModal">
+    <div class="auth-modal-box">
+      <div class="auth-modal-head">
+        <h3>Reset Password</h3>
+        <span class="auth-modal-close" onclick="document.getElementById('forgotModal').style.display='none'">&times;</span>
+      </div>
+      <div id="forgotStep1">
+        <p class="auth-modal-sub">Enter your email and we'll send you a reset link.</p>
+        <div class="form-group">
+          <input type="email" id="forgotEmail" class="form-control" placeholder="your@email.com">
+        </div>
+        <button class="btn-glow auth-btn w-100" onclick="sendResetLink()"><span>Send Reset Link</span></button>
+      </div>
+      <div id="forgotStep2" style="display:none;">
+        <p class="auth-modal-sub">Enter your new password.</p>
+        <div class="form-group">
+          <input type="password" id="resetNewPw" class="form-control" placeholder="New Password (min 6 chars)">
+        </div>
+        <button class="btn-glow auth-btn w-100" onclick="resetPassword()"><span>Reset Password</span></button>
+      </div>
+      <div id="forgotStatus" style="font-size:0.82rem;margin-top:12px;text-align:center;display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000';
+    const API = {
+      getToken() { return localStorage.getItem('kiboe_token'); },
+      isAuthenticated() { return !!this.getToken(); },
+      async request(method, path, body) {
+        const h = { 'Content-Type': 'application/json' };
+        const t = this.getToken();
+        if (t) h['Authorization'] = 'Bearer ' + t;
+        const o = { method, headers: h };
+        if (body) o.body = JSON.stringify(body);
+        const r = await fetch(API_URL + path, o);
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.message);
+        return d;
+      },
+      register(u) { return this.request('POST', '/api/auth/register', u); },
+      login(c) { return this.request('POST', '/api/auth/login', c); },
+      forgotPassword(e) { return this.request('POST', '/api/auth/forgot', { email: e }); },
+      resetPassword(t, p) { return this.request('POST', '/api/auth/reset', { token: t, new_password: p }); },
+      getProfile() { return this.request('GET', '/api/auth/profile'); },
+    };
+
+    let resetTokenFromServer = null;
+
+    function showForgotPassword() {
+      document.getElementById('forgotModal').style.display = 'flex';
+      document.getElementById('forgotStep1').style.display = 'block';
+      document.getElementById('forgotStep2').style.display = 'none';
+      document.getElementById('forgotStatus').style.display = 'none';
+      document.getElementById('forgotEmail').value = '';
+      document.getElementById('resetNewPw').value = '';
+    }
+
+    async function sendResetLink() {
+      const email = document.getElementById('forgotEmail').value;
+      const btn = document.querySelector('#forgotStep1 .btn-glow');
+      if (!email) { showForgotStatus('Please enter your email', 'error'); return; }
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Sending...</span>';
+      showForgotStatus('', '');
+      try {
+        const res = await API.forgotPassword(email);
+        if (res.data && res.data.token) {
+          resetTokenFromServer = res.data.token;
+          document.getElementById('forgotStep1').style.display = 'none';
+          document.getElementById('forgotStep2').style.display = 'block';
+          showForgotStatus('Development mode: token ready. Set your new password below.', 'success');
+        } else {
+          document.getElementById('forgotStep1').style.display = 'none';
+          document.getElementById('forgotStep2').style.display = 'block';
+          showForgotStatus('Check your email (' + escHtml(email) + ') for the reset link.', 'success');
+        }
+      } catch (err) { showForgotStatus(err.message, 'error'); }
+      btn.innerHTML = '<span>Send Reset Link</span>';
+    }
+
+    async function resetPassword() {
+      const pw = document.getElementById('resetNewPw').value;
+      if (!pw || pw.length < 6) { showForgotStatus('Password must be at least 6 characters', 'error'); return; }
+      if (!resetTokenFromServer) { showForgotStatus('No reset token available. Please check your email for the reset link.', 'error'); return; }
+      const btn = document.querySelector('#forgotStep2 .btn-glow');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Resetting...</span>';
+      showForgotStatus('', '');
+      try {
+        await API.resetPassword(resetTokenFromServer, pw);
+        showForgotStatus('Password reset successful! You can now login.', 'success');
+        setTimeout(() => { document.getElementById('forgotModal').style.display = 'none'; }, 2000);
+      } catch (err) { showForgotStatus(err.message, 'error'); }
+      btn.innerHTML = '<span>Reset Password</span>';
+    }
+
+    function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function showForgotStatus(msg, type) {
+      const el = document.getElementById('forgotStatus');
+      el.style.display = 'block';
+      el.textContent = msg;
+      el.style.color = type === 'error' ? '#E0454F' : type === 'success' ? '#1D7A42' : 'var(--muted)';
+    }
+
+    if (API.isAuthenticated()) { window.location.href = 'dashboard.html'; }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.querySelector('input[type="email"]').value;
+      const password = this.querySelector('input[type="password"]').value;
+      const btn = this.querySelector('button[type="submit"]');
+      const errEl = document.getElementById('loginError');
+      errEl.style.display = 'none';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Signing in...</span>';
+      try {
+        const res = await API.login({ email, password });
+        localStorage.setItem('kiboe_token', res.data.token);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        btn.innerHTML = '<span>Sign In</span>';
+        errEl.textContent = err.message || 'Login failed';
+        errEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
